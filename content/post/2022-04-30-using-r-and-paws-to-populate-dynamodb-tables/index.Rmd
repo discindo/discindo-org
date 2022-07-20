@@ -1,0 +1,166 @@
+---
+title: Using R and {paws} to populate DynamoDB tables
+author: Teo
+date: '2022-04-30'
+slug: []
+categories:
+  - R
+tags:
+  - paws
+  - aws
+  - dynamodb
+images: []
+---
+
+
+# R and AWS DynamoDB
+
+In recent weeks we've been using AWS services for a few our projects. One of the things
+that came up was to populate `DynamoDB` tables with data from `R`. Of course, we
+didn't have to do this from `R`, but most of our data analysis and reporting stack
+is based on `R`, so why not keep it all in the same environment. We were surprised, however,
+that there are very limited resources on how to put data into `DynamoDB` from `R`. A quick
+Google search with these keywords did not reveal any tutorials or blogposts, which are
+usually plentiful for many other topics in the excellent `R` community. 
+
+To our knowledge so far, there are two `R` packages designed to interact with
+`{DynamoDB}`. One is the [`{aws.dynamodb}`](https://github.com/cloudyr/aws.dynamodb) 
+package by `cloudyr` that is no longer maintained. The other option is of course,
+[`{paws}`](https://paws-r.github.io/) -- a comprehensive `R` SDK for AWS,
+which provides access to over 150 AWS services through `R`. `{paws}`' documentation is 
+extensive, including its coverage of the features of `DynamoDB` endpoints. So, it was 
+straightforward to write a few functions wrapping `paws::dynamodb`, to make it easier to 
+put all the rows of a data.frame as items in `DynamoDB`.
+
+# Loading items into a `DynamoDB` table from `R` using the `paws` SDK
+
+`DynamoDB`'s `put_item` API query requires a JSON with the following format:
+
+```
+  Item={
+    'AlbumTitle': {
+      'S': 'Somewhat Famous',
+    },
+    'Artist': {
+      'S': 'No One You Know',
+    },
+    'SongTitle': {
+      'S': 'Call Me Today',
+      }
+    }
+```
+
+In `R` terms this would translate to a named nested list with sublists further named
+with the field's data type as described in the [documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes): 
+
+```{r}
+list(
+  AlbumTitle = list(S = "Somewhat Famous"),
+  Artist = list(S = "No One You Know"),
+  SongTitle = list(S = "Call Me Today")
+)
+```
+
+To write a function to bulk load a data frame into `DynamoDB` using the `R SDK` `{paws}`,
+we follow the next steps, each with its own `R` function:
+
+1. Guess the appropriate field type (attribute) for a data.frame column
+
+```{r}
+guess_attrib <- function(types) {
+  # add more as needed
+  switch(types,
+         "numeric" = "N",
+         "integer" = "N",
+         "character" = "S",
+         "logical" = "BOOL")
+}
+```
+
+2. Format the named nested list for a single row of the data.frame, which would become a `DynamoDB` item
+
+```{r}
+dynamo_item_prep <- function(.item) {
+  types <- lapply(.item, class)
+  attribs <- lapply(types, guess_attrib)
+  nested <- lapply(seq_along(.item), function(i) as.list(setNames(.item[[i]], attribs[[i]])))
+  setNames(nested, names(.item))
+}
+```
+
+3. Wrap the `dynamodb_put_item` function (exported by `paws.database`) to put the formatted item in our remote table
+
+```{r}
+dynamo_item_put <- function(.con, .table, .prep) {
+  .con$put_item(
+    TableName = .table,
+    Item = .prep
+  )
+}
+```
+
+To test this setup we load the `{paws}` package and create a connection to our `DynamoDB`:
+
+```{r}
+con <- paws::dynamodb(
+  config = list(
+    credentials = list(
+      creds = list(
+        access_key_id = Sys.getenv("ACCESS_KEY_ID"),
+        secret_access_key = Sys.getenv("SECRET_ACCESS_KEY")
+      ),
+      profile = Sys.getenv("PROFILE")
+    ),
+    region = Sys.getenv("REGION")
+  )
+)
+```
+
+Meanwhile, our project `.Renviron` needs to have these entries set:
+
+```
+ACCESS_KEY_ID = "OURKEYID"
+SECRET_ACCESS_KEY = "OURSECRET"
+PROFILE = "default"
+REGION = "us-east-1"
+```
+
+Now, if we have a DynamoDB table called `Iris` with a numeric partition key called ID,
+we can use our functions to put items into it from `R`:
+
+```{r, eval = FALSE}
+iris_to_put <- iris
+iris_to_put$Species <- as.character(iris_to_put$Species)
+iris_to_put$ID <- 1:150
+
+preped_item <- dynamo_item_prep(.item = iris_to_put[1, ])
+preped_item
+dynamo_item_put(.con = con, .table = "Iris", .prep = preped_item)
+```
+
+Finally, we can wrap our functions to send a whole data.frame in one step:
+
+```{r, eval = FALSE}
+dynamo_bulk_put <- function(.con, .table, .df) {
+  lapply(1:nrow(.df), function(i)
+    dynamo_item_prep(.item = .df[i, ]) |>
+      dynamo_item_put(.con = .con, .table = .table))
+}
+```
+
+Then, to send the whole `iris` table, we can run
+
+```{r, eval = FALSE}
+dynamo_bulk_put(.con = con, .table = "Iris", .df = iris_to_put)
+```
+
+## Next steps
+
+Great! This worked pretty well, however, so far our setup only allows for simple data types.
+We can't for example send a list as one of the item components, which is obviously important for a
+noSQL database -- so far we haven't done anything more than sending a "flat" table. Also, our simple
+function doesn't yet know anything about our DynamoDB's throughput and capacity, so its going to 
+naively try to send all data even though the table provisioning on AWS might not be configured to 
+receive all the data in one go. Finally, there are other options in the `paws` SDK for writing larger
+volume of data to DynamoDB. We'll explore some of these topics in future posts.
+

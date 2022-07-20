@@ -1,0 +1,131 @@
+---
+title: 'A {shiny} app to wrap BlasterJS and visualize NCBI blast results locally'
+authors: ['teo']
+date: '2022-06-23'
+slug: []
+categories:
+  - Shiny
+  - R
+tags:
+  - blasterjs
+  - ncbi
+  - blast
+images: []
+---
+## `blast` and `BlasterJS`
+
+I recently learned about a really slick `JavaScript` component for interactive visualization
+of NCBI's `blast` output. `BlasterJS` ([Website](http://sing-group.org/blasterjs/), [Paper](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205286)) makes it 
+possible to visualize `blast` results in a way similar to the typical viz available on NCBI's 
+website. This is a fantastic resource, both in a day-to-day bioinformatics workflows, as well as
+for sharing results of genomics projects. For example, if we sequenced a novel genome and would 
+like our collaborators or the public to blast some sequences against our genome, we could show
+the results with `BlasterJS`. Awesome!
+
+## `BlasterJS` dependencies and HTML template
+
+Being an `R` programmer, and considering the wealth of `Bioconductor` resources for 
+bioinformatics, I thought being able to run `BlasterJS` from `R` would be very useful. So
+I wrote a very small and simple `{golem}` application, called `{blastR}` to launch `BlasterJS` from `R`. One can
+install the `{blastR}` package locally and launch it when needed, or deploy an instance of `blastR` on
+their favorite `{shiny}` server platform to simply upload a `blast` output file.
+
+With `{golem}`, the steps to make `BlasterJS` available in `shiny` are super easy:
+
+1. Download the `JavaScript` dependencies (`blaster.js` and `html2canvas.js`) and place 
+them `inst/app/www/js`. `inst/app/www` is the typical path for adding external resources to `{shiny}`, 
+and is added to the resource path by `{golem}` by default. We also add another subdirectory, `js`,
+because the `BlasterJS` `HTML` template expect these resources in a folder called `js`. 
+
+(The `BlasterJS` [website](http://sing-group.org/blasterjs/) also mentions `Bootstrap 3` as a dependency, 
+but we don't need to load that as it is bundled with `{shiny}` already.)
+
+2. Create a `{shiny}` HTML template from the suggested `BlasterJS` `HTML` template. With `{golem}`, this is
+as easy as:
+
+```{r, eval = FALSE}
+golem::add_html_template("BlasterJS")
+#>  ✔ File created at /home/blasteR/inst/app/www/BlasterJS.html
+#>  
+#>  ── To use this html file as a template, add the following code in app_ui.R: ──────────────────────────────────
+#>  htmlTemplate(
+#>      app_sys("app/www/BlasterJS.html"),
+#>      body = tagList()
+#>      # add here other template arguments
+#>  )
+```
+
+Then, we navigate to "inst/app/www/" and open "BlasterJS.html". Copy the HTML suggested
+by the `BlasterJS` team:
+
+```
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous" />
+    ...
+</head>
+<body>
+    ...
+    <input type="file" id="blastinput" />
+    <div id="blast-multiple-alignments"></div>
+    <div id="blast-alignments-table"></div>
+    <div id="blast-single-alignment"></div>
+    ...
+    <script type="text/javascript" src="js/html2canvas.js"></script>
+    <script type="text/javascript" src="js/blaster.js"></script>
+    <script type="text/javascript">
+        var blasterjs = require("biojs-vis-blasterjs");
+        var instance  = new blasterjs({
+            input: "blastinput",
+            multipleAlignments: "blast-multiple-alignments",
+            alignmentsTable: "blast-alignments-table",
+            singleAlignment: "blast-single-alignment"
+        });    
+    </script>
+</body>
+```
+
+And modify:  
+1. To remove the `head` tag, this will come from our `{shiny}` app `HTML`.   
+2. Change the `<body></body>` container into a plain `<div></div>` container.  
+(This is probably not necessary, but it makes more sense to insert this HTML as a `div`, 
+not the whole `body` of our `{shiny}` app)
+
+After these changes, the contents of `inst/app/www/BlasterJS.html` should be:
+
+```
+<div>
+    <input type="file" id="blastinput" />
+    <div id="blast-multiple-alignments"></div>
+    <div id="blast-alignments-table"></div>
+    <div id="blast-single-alignment"></div>
+    <script type="text/javascript" src="js/html2canvas.js"></script>
+    <script type="text/javascript" src="js/blaster.js"></script>
+    <script type="text/javascript">
+        var blasterjs = require("biojs-vis-blasterjs");
+        var instance  = new blasterjs({
+            input: "blastinput",
+            multipleAlignments: "blast-multiple-alignments",
+            alignmentsTable: "blast-alignments-table",
+            singleAlignment: "blast-single-alignment"
+        });
+    </script>
+</div>
+```
+
+## A `{shiny}` + `{golem}` application wrapping `BlasterJS`
+
+Finally, to use this `HTML` template, we write in our `app_ui`:
+
+```{r, eval = FALSE}
+app_ui <- function(request) {
+  tagList(
+    golem_add_external_resources(),
+    fluidPage(
+      h1("blasteR: A shiny app using the wonderful `BlasterJS` component"),
+      shiny::htmlTemplate(app_sys("app/www/BlasterJS.html"))
+    )
+  )
+}
+```
+
+Done!

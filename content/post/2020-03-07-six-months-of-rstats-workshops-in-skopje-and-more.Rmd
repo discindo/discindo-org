@@ -1,0 +1,22 @@
+---
+title: 'Six months of #rstats workshops in Skopje, and more'
+author: novica
+date: '2020-03-07'
+slug: six-months-of-rstats-workshops-in-skopje-and-more
+categories: [R, Python]
+tags: [workshop, tidytuesday, rskopje, pydata, data science]
+---
+
+In August 2019 I [sent](https://twitter.com/therealpsmst/status/1161717504298950657) a tweet asking if there any `R` enthusiasts in Skopje. The tweet got some attention (8 Retweets, 22 Likes) and encouraged us to have our  on September 3rd we had our [first event](https://kika.spodeli.org/event/tidytuesday-%d0%b2%d0%be-%d0%ba%d0%b8%d0%ba%d0%b0-%d0%b2%d1%82%d0%be%d1%80%d0%bd%d0%b8%d0%ba-3-9-2019-%d0%b2%d0%be-19-%d1%87/) on September 3rd in the [Skopje Hacklab KIKA](https://wiki.hackerspaces.org/KIKA). 
+
+We've had metups (almost) every Tuesday since, first in line with the [Tidy Tuesday](https://github.com/rfordatascience/tidytuesday/) events, using the provided datasets to learn the `Tidyverse`, and then as the group evolved, we moved to other things such as the [Statistical Rethinking](https://xcelab.net/rm/statistical-rethinking/) course. Around 15 people have come and gone through the events, some coming once just out of curiosity, others coming each event and learning enough to help other newcomers as they show up.
+
+Sometime in the fall of 2019 I aslo set up the [PyData](https://www.meetup.com/PyData-Skopje) chapter in Skopje. We've had four events, one each month since November 2019 on various Data Science related topics. Each event welcomes about 15 people (which is basically the full capacity of our tiny hacklab space). Next one is due at the end of March 2020 and the topic will be Python notebooks. 
+
+And in February 2020, I applied on the [R Consortium](https://www.r-consortium.org/projects/r-user-group-support-program) call for `R` user groups, so now our Tuesday meetups are under the name [R Skopje](https://www.meetup.com/RSkopje/). We even have a modified KIKA logo with R's `<-`. :)
+
+![KIKA's R Skopje logo](/post/2020-03-07-six-months-of-rstats-workshops-in-skopje-and-more_files/photo5976681755752640924.jpg)
+
+We haven't had this many events in the hacklab for a while. The total is about 30 since september 2019, all in the broad Data Science field. 
+
+What is also interesing, is that many of the people coming are from a non-IT background but social studies, economics, and political science, and many, actually the majority, are women. So hopefully we will have an `R-Ladies` group in the near future too.

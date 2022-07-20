@@ -1,0 +1,125 @@
+---
+title: Using {shiny.i18n} with {golem} for server-side translation
+author: Teofil
+date: '2021-05-22'
+slug: using-shiny-i18n-with-golem-for-server-side-translation
+categories:
+  - Shiny
+  - R
+  - golem
+  - shiny.i18n
+  - internationalizations
+tags:
+  - Metamorfosis Foundation
+  - Hackathon
+---
+
+In this post we share a useful tidbit we learned while developing the demo for the [`OpenBudgetMKD`](discindo.shinyapps.io/OpenBudgetNMK/) application. 
+
+Like with most projects at Discindo, the `OpenBudgetMKD` application is based on `R` and `{shiny}`. It uses the `{bs4Dash}` and `shinyWidgets` for their excellent UI components, is packaged with`{golem}`, and will be available in Macedonian, Albanian, and English. From a programming perspective, the most interesting aspect for us was implementing internationalization using the `{shiny.i18n}` package and integrating this into a `{golem}`ized `{shiny}` application. These tools integrate seamlessly and make creating rather powerful and great looking applications easy. Many thanks to the developers for creating these awesome packages!
+
+The one small glitch we encountered had to do with dynamically updating the language of choices of `shinyWidgets::radioGroupButtons`. Client-side translation using the usual `{shiny.i18n}` [workflow](https://appsilon.github.io/shiny.i18n/articles/basics.html) was not working, and the proposed [solution](https://github.com/Appsilon/shiny.i18n/issues/54) to translate the choices within an `update` function on the server did not work out of the box in `{golem}` because the `i18n$translator` was not in the `server`'s function scope. Specifically, because the `ui` and `server` of `{golem}`ized `{shiny}` applications exist as separate functions in separate scripts, they [do not share the scope](https://shiny.rstudio.com/articles/scoping.html) (like they would in single-file `{shiny}` applications). Normally, we overcome this by using `global.R` to load objects in the environment that are shared by both `ui` and `server`. But in `{golem}`, there is no `global.R`. So what to do?
+
+Fortunately, we are again spoiled by the versatility of `{golem}`. The solution is to pass the `i18n` translator object as `golem.option` when running the app, in `golem::run_app()`. Then we can use `golem::get_golem_options` to access the translator wherever we need it, e.g., at the beginning of both `app_ui` and `app_server` to make the translator available in both functions.
+
+We include a minimal example of below. See also the [repository](https://github.com/discindo/shiny.golem.i18n).
+
+*****
+
+1. Customize `golem::run_app` to load the translator
+
+```{r}
+# R/run_app
+
+run_app <- function(
+  onStart = NULL,
+  options = list(), 
+  enableBookmarking = NULL,
+  uiPattern = "/",
+  ...
+) {
+  with_golem_options(
+    app = shinyApp(
+      ui = app_ui,
+      server = app_server,
+      onStart = onStart,
+      options = options, 
+      enableBookmarking = enableBookmarking, 
+      uiPattern = uiPattern
+    ), 
+    # Initiate the translator as a golem.option
+    golem_opts = list(translator = shiny.i18n::Translator$new(translation_csvs_path = "inst/app/www/translations/"))
+  )
+}
+```
+
+
+2. Get the translator from golem's options
+
+- UI
+
+```{r}
+# R/app_ui.R
+
+app_ui <- function(request) {
+  # calling the translator sent as a golem option
+  i18n <- golem::get_golem_options(which = "translator")
+  i18n$set_translation_language("en")
+  
+  tagList(# Leave this function for adding external resources
+    golem_add_external_resources(),
+    # Your application UI logic
+    fluidPage(
+      h3("{golem} app and {shiny.i18n} internationalization"),
+      h5("(With server-side translation)"),
+      br(),
+      column(
+        width = 4,
+        # select language
+        radioButtons(
+          inputId = "lang",
+          label = "Select language",
+          inline = TRUE,
+          choices = i18n$get_languages()
+        ),
+        # UI that we'll translate on the server size
+        uiOutput("welcome")
+      )
+    ))
+}
+```
+
+
+- Server
+
+```{r}
+app_server <- function( input, output, session ) {
+  
+  # calling the translator sent as a golem option
+  i18n <- golem::get_golem_options(which = "translator")
+  i18n$set_translation_language("en")
+  
+  # keep track of language object as a reactive
+  i18n_r <- reactive({
+    i18n
+  })
+  
+  # change language
+  observeEvent(input[["lang"]], {
+    shiny.i18n::update_lang(session, input[["lang"]])
+    i18n_r()$set_translation_language(input[["lang"]])
+  })
+  
+  output[["welcome"]] <- renderUI({
+    
+    bg <- switch(input[["lang"]], 
+                 "en" = "white",
+                 "es" = "yellow",
+                 "fr" = "steelblue",
+                 "de" = "lightgrey")
+    
+    div(style = paste("padding: 10px; border-radius: 10px; background:", bg), h3(i18n$t("Welcome")))
+  }) 
+}
+```
+

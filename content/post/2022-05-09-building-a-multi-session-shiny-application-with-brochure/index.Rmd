@@ -1,0 +1,191 @@
+---
+title: Building a multi-session {shiny} application with {brochure}
+author: teo
+date: '2022-05-09'
+slug: []
+categories:
+  - golem
+  - R
+  - Shiny
+tags:
+  - app
+  - brochure
+images: []
+---
+
+
+# About `{brochure}`
+
+`{shiny}`, and the closely linked packages like `{bslib}`, `{thematic}`, `{shinytest}`, etc,
+are a fantastic resource for `R` programmers that enable building powerful interactive applications.
+Building on top of these, are some new (and not so new) `R` packages that that streamline and standardize
+the development of `{shiny}` applications. Among these are `{golem}` (my personal favorite), `{packer}`, `{rhino}`,
+and last, but certainly not least, `{brochure}`.
+
+`{brochure}` is unique among the `[shiny]`-related packages because it enables navitely multi-session applications. The
+development is oriented around `pages` that have with their own `ui`, `server`, and `page` functions served on
+independent endpoints. Thus, whenever we go from `my_app.me/` to `my_app.me/contact`, `{brochure}` ensures that the
+two pages run in independent `{shiny}` sessions. This is fundamentally different from typical `{shiny}` applications that are
+by design single-session. And yes, with `{brochure}` we can now have separate `URL`s for our pages!
+
+There is a lot more going on under the hood in `{brochure}` that can be included here, and most of it I don't fully understand. 
+For this I recommend to read the documentation and browse the [source code](https://github.com/ColinFay/brochure). However,
+I just built my first serious draft application with `{brochure}` and wanted to comment on the experience. 
+
+# Building my first `{brochure}` app
+
+I typically use `{golem}` for developing `{shiny}` applications, and was excited to see that `{brochure}`
+is also designed to work with `{golem}`. This meant that I can have a familiar directory structure
+and I can use my usual workflow and shortcuts to develop the application. I also was thrilled to see that
+there is a `brochure::new_page` template function that can be used with `golem::add_module` to create 
+`{shiny}` module + `{brochure}` page skeleton. 
+
+From here, setting up a basic application with several pages, is then as simple as:
+
+1. calling 
+
+```
+golem::add_module(name = "page_X", module_template = brochure::new_page)
+```
+for each page, and
+
+2. calling the automatically generated `page_X()` page function within the 
+project's `run_app()` function. 
+
+And that is pretty much it, `{brochure}` handles the redirects,
+so once you `run_app()` you can visit the various endpoints we defined by pointing the
+browser to `.../page_1`, `.../page_2`, etc.
+
+So far, my pages do not share data, so I haven't needed to use cookies or a database to
+pass objects between sessions, but `{brochure}`'s documentation covers this and I am 
+looking forward to adapting as my application increases in complexity. 
+
+# Deploying my first `{brochure}` app
+
+To deploy my `{brochure}` application to `shinyapps.io`, I used `golem::add_shinyappsio_file()` to 
+generate an `app.R` file and then deploy with `rsconnect::deployApp()`. However, once deployed, I could
+only access the home page, at the url: `my_account.shinyapps.io/my_app/`. All other pages could not be 
+accessed, returning a `404` code because the apparently the redirects were not set up correctly. But
+everything worked fine locally. So what happened?
+
+By default, `{brochure}` assumes that the application's URL is of the form `my_app.me`, such that the `/` endpoint (`my_app.me/`)
+would be `home` and the `/page` endpoint would lead to some page (`my_app.me/page`). However, on `shinyapps.io`,
+and possibly other hosting options (e.g., `ShinyProxy`), the app URL is of the form `my_account.shinyapps.io/my_app/`,
+so when `{brochure}` redirects to `/page` the generated URL (`my_account.shinyapps.io/page`) is wrong, 
+it should be `my_account.shinyapps.io/my_app/page`. 
+
+So, the default redirect `href`s worked fine in my 'development' setting but not in 'production'. I 
+needed a way to generate a different `href` based on the current app URL, i.e., whether or not it contained
+the `my_app` base path.
+
+In the `{golem}`+`{brochure}` framework we can achieve this by setting `R` options before running the 
+application with `run_app()`. So when developing locally, I can set `options(baseurl = "")` and keep
+working with default settings. In turn, when deploying to the server, we can set `options(baseurl = "my_app")`.
+Then, the environment in which we call `run_app()` will have an option `baseurl` that correspond to the application's URL.
+
+The next step was to write a function that would change the `page`'s `href` on the fly by looking up the `baseurl` option,
+and prefixing the endpoint. Along the lines of:
+
+```
+#' make_href
+#'
+#' @description Add appropriate prefix to redirect link depending on context (option baseurl)
+#' @param endpoint endpoint without leading `/`
+#' @noRd
+make_href <- function(endpoint) {
+  baseurl <- getOption("baseurl")
+  if (baseurl != "") {
+    paste0("/", baseurl, "/", endpoint, sep = "")
+  } else {
+    paste0("/", endpoint, sep = "")
+  }
+}
+```
+
+Then, in `/dev/run_dev.R` we can set
+
+```
+options(baseurl = "")
+> make_href("")
+[1] "/"
+> make_href("page2")
+[1] "/page2"
+
+# then run app should work with unprefixed hrefs
+run_app()
+```
+
+In 'production' mode on shinyapps.io, we can add the baseurl option in `app.R` before calling `run_app()`:
+
+```
+options(baseurl = "my_app")
+> make_href("")
+[1] "/my_app/"
+> make_href("page2")
+[1] "/my_app/page2"
+
+# then run app should work with prefixed hrefs
+run_app()
+```
+
+To put this to work, we have to wrap our target `endpoint` with the `make_ref` function. For example,
+by default, a link in a `{brochure}` app might be: 
+
+```
+tags$a( href = "page", "page" )
+```
+
+But to allow dynamic `href` we'd need:
+
+```
+tags$a(href = make_href("page"), "page")
+```
+
+Finally, we also want to set the `brochure::brochureApp` argument `basepath` with our context-dependent `baseurl` option, 
+as this will allow `{brochure}` to correctly format the `href` of our page. In the end, the `run_app` function
+would look something like this:
+
+```
+run_app <- function(
+  onStart = NULL,
+  options = list(),
+  enableBookmarking = NULL,
+  ...
+) {
+  with_golem_options(
+    app = brochureApp(
+      # Putting the resources here
+      golem_add_external_resources(),
+
+      # main pages
+      home(),
+      page1(),
+      #...
+
+      onStart = onStart,
+      options = options,
+      enableBookmarking = enableBookmarking,
+      content_404 = "Not found",
+      # change the base path depending on context:
+      basepath = getOption("baseurl"),
+      req_handlers = list(),
+      res_handlers = list(),
+      wrapped = shiny::fluidPage
+    ),
+    golem_opts = list(...)
+  )
+}
+
+```
+
+# Final thoughts
+
+Please note that `{brochure}` is still a work in progress, and perhaps
+not yet fully ready for all projects. Consider it carefully before
+embarking on a large new project or transitioning single-session `{shiny}`, as 
+`{brochure}` might not yet have all features that might be required. After all, 
+the repository has a big bold warning **THIS IS A WORK IN PROGRESS, DO NOT USE**. 
+
+Overall, I was surprised how quickly one could get started with `{brochure}`, especially
+from `{golem}` as a stepping stone. It is remarkable that we have this resource,
+and I am thankful to Colin Fay for leading the way on novelties like these!

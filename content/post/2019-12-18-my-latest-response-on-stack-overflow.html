@@ -1,0 +1,47 @@
+---
+title: Basic visual manupulation of phylogenies in R
+author: Teofil
+date: '2019-12-18'
+slug: basic-visual-manipulation-of-phylogenies-in-r
+categories:
+  - R
+  - StackOverflow
+tags: [phylogenies]
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>From time to time I visit Stack Overflow (SO) to look at discussions on <code>R</code>, <code>Shiny</code>, and <code>Tidyverse</code> problems. Being an evolutionary biologist, this lead me to learn <code>R</code> in the first place, I also check for any questions related phylogenetics. Today I answered a question on basic visual manipulation of trees using <code>ape</code> (analysis of phylogenetics and evolution), the main phylogenetic package in <code>R</code>. I reproduce my answer here mainly to go through the process of posting and work out any blogdown issues that might come up. The SO thread is <a href="https://stackoverflow.com/questions/59383667/phylogenetic-tree-ape-too-small/59401999#59401999">here</a>, and my response follows.</p>
+<hr />
+<p>Here are some pointers using the <code>ape</code> package. I am using a random tree as we don’t have access to yours, but these examples should be easily adaptable to your problem. If your provide a reproducible example of a specific question, I could take another look.</p>
+<p>First me make a random tree, add some species names, and plot it to show the numbers of nodes (both terminal and internal)</p>
+<pre class="r"><code>library(ape)
+set.seed(123)
+Tree &lt;- rtree(10)
+Tree$tip.label &lt;- paste(&quot;Species&quot;, 1:10, sep=&quot;_&quot;)
+plot.phylo(Tree)
+nodelabels() # blue
+tiplabels() # yellow
+edgelabels() # green</code></pre>
+<p><img src="/post/2019-12-18-my-latest-response-on-stack-overflow_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>Then, to color any node or edge of the tree, we can create a vector of colors and provide it to the appropriate <code>*labels()</code> function.</p>
+<pre class="r"><code># using numbers for colors
+node_colors &lt;- rep(5:6, each=5)[1:9] # 9 internal nodes 
+edge_colors &lt;- rep(3:4, each=9) # 18 branches
+tip_colors &lt;- rep(c(11,12,13), 4)
+# plot:
+plot.phylo(Tree, edge.color = edge_colors, tip.color = tip_colors) 
+nodelabels(pch = 21, bg = node_colors, cex=2)</code></pre>
+<p><img src="/post/2019-12-18-my-latest-response-on-stack-overflow_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>To label just one node and the clade descending from it, we could do:</p>
+<pre class="r"><code>node_colors &lt;- rep(NA, 9)
+node_colors[7] &lt;- &quot;green&quot;
+node_shape &lt;- ifelse(is.na(node_colors), NA, 21)
+edge_colors &lt;- rep(&quot;black&quot;, 18)
+edge_colors[13:18] &lt;- &quot;green&quot;
+plot(Tree, edge.color = edge_colors, edge.width = 2, label.offset = .1)
+nodelabels(pch=node_shape, bg=node_colors, cex=2)</code></pre>
+<p><img src="/post/2019-12-18-my-latest-response-on-stack-overflow_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Without your tree, it is harder to tell how to adjust the branches. One way is to reduce the size of the tip labels, so they take up less space. Another way might be to play around when saving the png or pdf.</p>
+<p>There are other ways of doing these embellishments of trees, including the <code>ggtree</code> package.</p>

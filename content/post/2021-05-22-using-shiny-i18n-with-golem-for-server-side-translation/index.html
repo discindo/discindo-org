@@ -1,0 +1,115 @@
+---
+title: Using {shiny.i18n} with {golem} for server-side translation
+author: Teofil
+date: '2021-05-22'
+slug: using-shiny-i18n-with-golem-for-server-side-translation
+categories:
+  - Shiny
+  - R
+  - golem
+  - shiny.i18n
+  - internationalizations
+tags:
+  - Metamorfosis Foundation
+  - Hackathon
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>In this post we share a useful tidbit we learned while developing the demo for the <a href="discindo.shinyapps.io/OpenBudgetNMK/"><code>OpenBudgetMKD</code></a> application.</p>
+<p>Like with most projects at Discindo, the <code>OpenBudgetMKD</code> application is based on <code>R</code> and <code>{shiny}</code>. It uses the <code>{bs4Dash}</code> and <code>shinyWidgets</code> for their excellent UI components, is packaged with<code>{golem}</code>, and will be available in Macedonian, Albanian, and English. From a programming perspective, the most interesting aspect for us was implementing internationalization using the <code>{shiny.i18n}</code> package and integrating this into a <code>{golem}</code>ized <code>{shiny}</code> application. These tools integrate seamlessly and make creating rather powerful and great looking applications easy. Many thanks to the developers for creating these awesome packages!</p>
+<p>The one small glitch we encountered had to do with dynamically updating the language of choices of <code>shinyWidgets::radioGroupButtons</code>. Client-side translation using the usual <code>{shiny.i18n}</code> <a href="https://appsilon.github.io/shiny.i18n/articles/basics.html">workflow</a> was not working, and the proposed <a href="https://github.com/Appsilon/shiny.i18n/issues/54">solution</a> to translate the choices within an <code>update</code> function on the server did not work out of the box in <code>{golem}</code> because the <code>i18n$translator</code> was not in the <code>server</code>’s function scope. Specifically, because the <code>ui</code> and <code>server</code> of <code>{golem}</code>ized <code>{shiny}</code> applications exist as separate functions in separate scripts, they <a href="https://shiny.rstudio.com/articles/scoping.html">do not share the scope</a> (like they would in single-file <code>{shiny}</code> applications). Normally, we overcome this by using <code>global.R</code> to load objects in the environment that are shared by both <code>ui</code> and <code>server</code>. But in <code>{golem}</code>, there is no <code>global.R</code>. So what to do?</p>
+<p>Fortunately, we are again spoiled by the versatility of <code>{golem}</code>. The solution is to pass the <code>i18n</code> translator object as <code>golem.option</code> when running the app, in <code>golem::run_app()</code>. Then we can use <code>golem::get_golem_options</code> to access the translator wherever we need it, e.g., at the beginning of both <code>app_ui</code> and <code>app_server</code> to make the translator available in both functions.</p>
+<p>We include a minimal example of below. See also the <a href="https://github.com/discindo/shiny.golem.i18n">repository</a>.</p>
+<hr />
+<ol style="list-style-type: decimal">
+<li>Customize <code>golem::run_app</code> to load the translator</li>
+</ol>
+<pre class="r"><code># R/run_app
+
+run_app &lt;- function(
+  onStart = NULL,
+  options = list(), 
+  enableBookmarking = NULL,
+  uiPattern = &quot;/&quot;,
+  ...
+) {
+  with_golem_options(
+    app = shinyApp(
+      ui = app_ui,
+      server = app_server,
+      onStart = onStart,
+      options = options, 
+      enableBookmarking = enableBookmarking, 
+      uiPattern = uiPattern
+    ), 
+    # Initiate the translator as a golem.option
+    golem_opts = list(translator = shiny.i18n::Translator$new(translation_csvs_path = &quot;inst/app/www/translations/&quot;))
+  )
+}</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Get the translator from golem’s options</li>
+</ol>
+<ul>
+<li>UI</li>
+</ul>
+<pre class="r"><code># R/app_ui.R
+
+app_ui &lt;- function(request) {
+  # calling the translator sent as a golem option
+  i18n &lt;- golem::get_golem_options(which = &quot;translator&quot;)
+  i18n$set_translation_language(&quot;en&quot;)
+  
+  tagList(# Leave this function for adding external resources
+    golem_add_external_resources(),
+    # Your application UI logic
+    fluidPage(
+      h3(&quot;{golem} app and {shiny.i18n} internationalization&quot;),
+      h5(&quot;(With server-side translation)&quot;),
+      br(),
+      column(
+        width = 4,
+        # select language
+        radioButtons(
+          inputId = &quot;lang&quot;,
+          label = &quot;Select language&quot;,
+          inline = TRUE,
+          choices = i18n$get_languages()
+        ),
+        # UI that we&#39;ll translate on the server size
+        uiOutput(&quot;welcome&quot;)
+      )
+    ))
+}</code></pre>
+<ul>
+<li>Server</li>
+</ul>
+<pre class="r"><code>app_server &lt;- function( input, output, session ) {
+  
+  # calling the translator sent as a golem option
+  i18n &lt;- golem::get_golem_options(which = &quot;translator&quot;)
+  i18n$set_translation_language(&quot;en&quot;)
+  
+  # keep track of language object as a reactive
+  i18n_r &lt;- reactive({
+    i18n
+  })
+  
+  # change language
+  observeEvent(input[[&quot;lang&quot;]], {
+    shiny.i18n::update_lang(session, input[[&quot;lang&quot;]])
+    i18n_r()$set_translation_language(input[[&quot;lang&quot;]])
+  })
+  
+  output[[&quot;welcome&quot;]] &lt;- renderUI({
+    
+    bg &lt;- switch(input[[&quot;lang&quot;]], 
+                 &quot;en&quot; = &quot;white&quot;,
+                 &quot;es&quot; = &quot;yellow&quot;,
+                 &quot;fr&quot; = &quot;steelblue&quot;,
+                 &quot;de&quot; = &quot;lightgrey&quot;)
+    
+    div(style = paste(&quot;padding: 10px; border-radius: 10px; background:&quot;, bg), h3(i18n$t(&quot;Welcome&quot;)))
+  }) 
+}</code></pre>

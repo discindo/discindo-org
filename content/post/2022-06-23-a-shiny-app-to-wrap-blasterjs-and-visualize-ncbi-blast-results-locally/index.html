@@ -1,0 +1,119 @@
+---
+title: 'A {shiny} app to wrap BlasterJS and visualize NCBI blast results locally'
+authors: ['teo']
+date: '2022-06-23'
+slug: []
+categories:
+  - Shiny
+  - R
+tags:
+  - blasterjs
+  - ncbi
+  - blast
+images: []
+---
+
+
+
+<div id="blast-and-blasterjs" class="section level2">
+<h2><code>blast</code> and <code>BlasterJS</code></h2>
+<p>I recently learned about a really slick <code>JavaScript</code> component for interactive visualization
+of NCBI’s <code>blast</code> output. <code>BlasterJS</code> (<a href="http://sing-group.org/blasterjs/">Website</a>, <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205286">Paper</a>) makes it
+possible to visualize <code>blast</code> results in a way similar to the typical viz available on NCBI’s
+website. This is a fantastic resource, both in a day-to-day bioinformatics workflows, as well as
+for sharing results of genomics projects. For example, if we sequenced a novel genome and would
+like our collaborators or the public to blast some sequences against our genome, we could show
+the results with <code>BlasterJS</code>. Awesome!</p>
+</div>
+<div id="blasterjs-dependencies-and-html-template" class="section level2">
+<h2><code>BlasterJS</code> dependencies and HTML template</h2>
+<p>Being an <code>R</code> programmer, and considering the wealth of <code>Bioconductor</code> resources for
+bioinformatics, I thought being able to run <code>BlasterJS</code> from <code>R</code> would be very useful. So
+I wrote a very small and simple <code>{golem}</code> application, called <code>{blastR}</code> to launch <code>BlasterJS</code> from <code>R</code>. One can
+install the <code>{blastR}</code> package locally and launch it when needed, or deploy an instance of <code>blastR</code> on
+their favorite <code>{shiny}</code> server platform to simply upload a <code>blast</code> output file.</p>
+<p>With <code>{golem}</code>, the steps to make <code>BlasterJS</code> available in <code>shiny</code> are super easy:</p>
+<ol style="list-style-type: decimal">
+<li>Download the <code>JavaScript</code> dependencies (<code>blaster.js</code> and <code>html2canvas.js</code>) and place
+them <code>inst/app/www/js</code>. <code>inst/app/www</code> is the typical path for adding external resources to <code>{shiny}</code>,
+and is added to the resource path by <code>{golem}</code> by default. We also add another subdirectory, <code>js</code>,
+because the <code>BlasterJS</code> <code>HTML</code> template expect these resources in a folder called <code>js</code>.</li>
+</ol>
+<p>(The <code>BlasterJS</code> <a href="http://sing-group.org/blasterjs/">website</a> also mentions <code>Bootstrap 3</code> as a dependency,
+but we don’t need to load that as it is bundled with <code>{shiny}</code> already.)</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Create a <code>{shiny}</code> HTML template from the suggested <code>BlasterJS</code> <code>HTML</code> template. With <code>{golem}</code>, this is
+as easy as:</li>
+</ol>
+<pre class="r"><code>golem::add_html_template(&quot;BlasterJS&quot;)
+#&gt;  ✔ File created at /home/blasteR/inst/app/www/BlasterJS.html
+#&gt;  
+#&gt;  ── To use this html file as a template, add the following code in app_ui.R: ──────────────────────────────────
+#&gt;  htmlTemplate(
+#&gt;      app_sys(&quot;app/www/BlasterJS.html&quot;),
+#&gt;      body = tagList()
+#&gt;      # add here other template arguments
+#&gt;  )</code></pre>
+<p>Then, we navigate to “inst/app/www/” and open “BlasterJS.html”. Copy the HTML suggested
+by the <code>BlasterJS</code> team:</p>
+<pre><code>&lt;head&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css&quot; integrity=&quot;sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7&quot; crossorigin=&quot;anonymous&quot; /&gt;
+    ...
+&lt;/head&gt;
+&lt;body&gt;
+    ...
+    &lt;input type=&quot;file&quot; id=&quot;blastinput&quot; /&gt;
+    &lt;div id=&quot;blast-multiple-alignments&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;blast-alignments-table&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;blast-single-alignment&quot;&gt;&lt;/div&gt;
+    ...
+    &lt;script type=&quot;text/javascript&quot; src=&quot;js/html2canvas.js&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;js/blaster.js&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+        var blasterjs = require(&quot;biojs-vis-blasterjs&quot;);
+        var instance  = new blasterjs({
+            input: &quot;blastinput&quot;,
+            multipleAlignments: &quot;blast-multiple-alignments&quot;,
+            alignmentsTable: &quot;blast-alignments-table&quot;,
+            singleAlignment: &quot;blast-single-alignment&quot;
+        });    
+    &lt;/script&gt;
+&lt;/body&gt;</code></pre>
+<p>And modify:<br />
+1. To remove the <code>head</code> tag, this will come from our <code>{shiny}</code> app <code>HTML</code>.<br />
+2. Change the <code>&lt;body&gt;&lt;/body&gt;</code> container into a plain <code>&lt;div&gt;&lt;/div&gt;</code> container.<br />
+(This is probably not necessary, but it makes more sense to insert this HTML as a <code>div</code>,
+not the whole <code>body</code> of our <code>{shiny}</code> app)</p>
+<p>After these changes, the contents of <code>inst/app/www/BlasterJS.html</code> should be:</p>
+<pre><code>&lt;div&gt;
+    &lt;input type=&quot;file&quot; id=&quot;blastinput&quot; /&gt;
+    &lt;div id=&quot;blast-multiple-alignments&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;blast-alignments-table&quot;&gt;&lt;/div&gt;
+    &lt;div id=&quot;blast-single-alignment&quot;&gt;&lt;/div&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;js/html2canvas.js&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot; src=&quot;js/blaster.js&quot;&gt;&lt;/script&gt;
+    &lt;script type=&quot;text/javascript&quot;&gt;
+        var blasterjs = require(&quot;biojs-vis-blasterjs&quot;);
+        var instance  = new blasterjs({
+            input: &quot;blastinput&quot;,
+            multipleAlignments: &quot;blast-multiple-alignments&quot;,
+            alignmentsTable: &quot;blast-alignments-table&quot;,
+            singleAlignment: &quot;blast-single-alignment&quot;
+        });
+    &lt;/script&gt;
+&lt;/div&gt;</code></pre>
+</div>
+<div id="a-shiny-golem-application-wrapping-blasterjs" class="section level2">
+<h2>A <code>{shiny}</code> + <code>{golem}</code> application wrapping <code>BlasterJS</code></h2>
+<p>Finally, to use this <code>HTML</code> template, we write in our <code>app_ui</code>:</p>
+<pre class="r"><code>app_ui &lt;- function(request) {
+  tagList(
+    golem_add_external_resources(),
+    fluidPage(
+      h1(&quot;blasteR: A shiny app using the wonderful `BlasterJS` component&quot;),
+      shiny::htmlTemplate(app_sys(&quot;app/www/BlasterJS.html&quot;))
+    )
+  )
+}</code></pre>
+<p>Done!</p>
+</div>

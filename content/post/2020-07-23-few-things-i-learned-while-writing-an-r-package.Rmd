@@ -1,0 +1,46 @@
+---
+title: Few things I learned while writing an R package
+author: novica
+date: '2020-07-23'
+slug: few-things-i-learned-while-writing-an-r-package
+categories:
+  - R
+tags:
+  - package
+  - newscatcheR
+images: []
+---
+
+I wanted to learn to write an R package for some time, but I didn't have an idea what should the package do. Then I saw [newscatcher](https://github.com/kotartemiy/newscatcher) and decided to build an R clone, and [newscatcheR](https://github.com/discindo/newscatcheR/) was born. It's a nice little package that enables quick access to RSS feeds of news sites. These are some things I learned while building it.
+
+## There are a lot of great resources for building R packages out there
+
+There is of course Hadley Whickam's [R packages](http://r-pkgs.had.co.nz/), but I found it very useful to follow Thinkr's [Rmd first: When development starts with documentation](https://rtask.thinkr.fr/when-development-starts-with-documentation/) and Emily Riederer's [RMarkdown Driven Development](https://emilyriederer.netlify.app/post/rmarkdown-driven-development/).
+
+## The package development proceess forces thinking about documentation and tests (and actually doing it)
+
+I didn't really plan to have all those bits and pieces in the package from the outset, but along the way it just came to be that it is simpler to have the vignette and the tests, rather then not. The tools in the R world such as [pkgdown](https://pkgdown.r-lib.org/) make things almost too smooth. 
+
+## The R community is really, really great
+
+OK. I knew this from previous experience, but it was confirmed again when I needed someone to test the package on Mac. I had help from bunch of people just by posting a question on the [R4DS Online Learning Community](https://www.rfordatasci.com/) Slack.
+
+## Github Actions can be used for R CMD check
+
+Which is awesome because the package can be checked on multiple systems and R version regardless of what OS and R version I am using for writing the package on my computer. 
+
+## Even the simplest package teaches many aspects of software development
+
+It really doesn't matter that newscatheR is just a few simple functions. For someone who has little experience, developing a package, besides the actual writing of R code, can teach: version control, documentation, testing, and releasing (to CRAN).
+
+## Maintaining a package is a lot of work
+
+Updating code seems easy only to realize that there are all these other things that need to be updated (documentation, tests). And then the check fails, and well of course there is this one more file that needs updating. 
+
+## Learning never ends (who knew right? :))
+
+I failed to learn [lifecycle](https://github.com/r-lib/lifecycle/), and just deleted a function from one version to another. I keep coming back to this, thinking I should have done better.
+
+## Writing a package is actually a lot of fun
+
+And even if just one more person finds it useful, then it is rewarding too.

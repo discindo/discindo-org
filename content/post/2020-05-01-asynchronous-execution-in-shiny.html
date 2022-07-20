@@ -1,0 +1,78 @@
+---
+title: "Asynchronous background execution in Shiny using callr"
+author:
+- novica
+- teofil
+date: '2020-05-01'
+slug: asynchronous-execution-in-shiny
+tags:
+- background process
+- asynchronous
+- callr
+categories:
+- R
+- Shiny
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>When designing <code>Shiny</code> applications we commonly associate asynchronous execution with multiple concurrent running sessions of an application. In such cases, when one user has requested a longer computation or a database query, the other users have to wait for this task to finish before they can see their plots and tables. This types of problems are elegantly solved with parallelization with <a href="https://rstudio.github.io/promises/articles/overview.html">promises</a>, so <code>Shiny</code> apps can scale up to many concurrent users.</p>
+<p>However, the current implementation of promises in <code>Shiny</code> <a href="https://github.com/rstudio/promises/issues/23#">does not deal</a> with one, sometimes important, use case. This is when the user that requested a particular task by clicking the dreaded long computation button wants to do other things in the app. For example, we might want to see some other plots while waiting for some web scraping function to finish, or we want to download some <code>PDF</code> files while a <code>SQL</code> transaction is running.</p>
+<p>We recently came up against this problem of down-time-for-all, both for the current user and other concurrent users. We solved it with the <a href="https://cran.r-project.org/web/packages/callr/callr.pdf"><code>callr</code> package</a>, specifically, the <code>callr::r_bg</code> function that works similar to promises, but executes a process in the background. So we can initiate a background <code>R</code> process, send the long running computation there, do what we need to do in the app, and then come back to the result of that computation once it has finished. In fact, Joe Chang <a href="https://github.com/rstudio/promises/issues/23#">mentioned</a> this approach as a workaround for the single-user blocking in <code>Shiny</code>.</p>
+<p>To see this approach in action, visit the <a href="https://novica.shinyapps.io/sync-async-callr/">example app</a> and to see the code, jump over to <a href="https://github.com/discindo/sync-async-callr">this</a> github repository.</p>
+<p>Next, we’ll delve in the implementation, which is quite straightforward. We designed the synchronous, and asynchronous background execution codes in <code>Shiny</code> modules. This makes sense because we want to reuse our background code for various tasks (database transactions, other disk read/write operations, …). All we need to do is change the function being called inside the background process, which can easily become a parameter to the module’s server.</p>
+<div id="regular-implementation-without-asynchronous-execution" class="section level3">
+<h3>Regular implementation without asynchronous execution</h3>
+<p>The expensive computation we are using in the example app is the following function:</p>
+<pre class="r"><code>long_job &lt;- function() { 
+  Sys.sleep(10)
+  }</code></pre>
+<p>So the user needs to wait 10 seconds before continuing to change the number of bins on the Faithful eruptions histogram.</p>
+<p>The server function of the regular, sync module has nothing remarkable. We just call <code>long_job()</code> to wait 10 seconds before rendering a message that the job has finished.</p>
+<pre class="r"><code>sync_srv &lt;- function(input, output, session) {
+  long_run &lt;- eventReactive(input$start, {
+    long_job()
+    return(&quot;Sync job completed&quot;)
+  })
+  
+  output$did_it_work &lt;- renderText({
+    long_run()
+  })
+}</code></pre>
+</div>
+<div id="background-processes-keep-the-app-alive-for-current-and-concurrent-users" class="section level3">
+<h3>Background processes keep the app alive for current <em>and</em> concurrent users</h3>
+<p>To send the expensive computation to the background, we ask <code>callr::r_bg</code> to run the relevant function for us and to poll its progress (<code>supervise = TRUE</code>). If we have any parameters to send to the long-running function, we pass these as a list to the <code>args</code> parameter of <code>r_bg</code>. There are none in this case because we just ask <code>R</code> to sleep.</p>
+<p>To be able to assess and inform the user about the progress, we store the <code>value</code> returned by the <code>r_bg</code> call (which is an <code>S4 r_process</code> object) and return that from the reactive. Next, we check the status of the background <code>R</code> process every second using the <code>is_alive()</code> method of the <code>r_process S4</code>. While <code>is_alive()</code> returns <code>TRUE</code>, we keep rendering an ‘in progress’ message. When the process completes, and <code>is_alive()</code> changes to <code>FALSE</code>, we render a ‘job completed’ message.</p>
+<pre class="r"><code>background_srv &lt;-
+  function(input, output, session) {
+    long_run &lt;- eventReactive(input$start, {
+      x &lt;- callr::r_bg(
+        func = long_job,
+        supervise = TRUE
+      )
+      return(x)
+    })
+    
+    check &lt;- reactive({
+      invalidateLater(millis = 1000, session = session)
+      
+      if (long_run()$is_alive()) {
+        x &lt;- &quot;Job running in background&quot;
+      } else {
+        x &lt;- &quot;Async job in background completed&quot;
+      }
+      return(x)
+    })
+    
+    # render the background process message to the UI
+    output$did_it_work &lt;- renderText({
+      check()
+    })
+}</code></pre>
+<p>In practice, for multiple concurrent users, the <code>r_bg</code> approach behaves like approaches based on <code>promises</code>. Users can keep interacting with the app, while one (or more) users are running the long computation. But unlike <code>promises/futures</code>, <code>r_bg</code> also lets the user that initiated the long computation keep interacting with the app.</p>
+<p>Pretty neat! Hats off to Gábor Csárdi and Winston Chang for this awesome package!</p>
+<p>To see the full code, including the modules’ UI functions and the Faithful app with our additions, head over to the <a href="https://github.com/discindo/sync-async-callr">Discindo’s</a> github repository.
+We hope you find this post interesting and useful. Please get in touch with comments, corrections, suggestions, or to say hi.</p>
+</div>

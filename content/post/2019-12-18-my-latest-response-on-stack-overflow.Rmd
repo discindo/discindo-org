@@ -1,0 +1,59 @@
+---
+title: Basic visual manupulation of phylogenies in R
+author: Teofil
+date: '2019-12-18'
+slug: basic-visual-manipulation-of-phylogenies-in-r
+categories:
+  - R
+  - StackOverflow
+tags: [phylogenies]
+---
+
+From time to time I visit Stack Overflow (SO) to look at discussions on `R`, `Shiny`, and `Tidyverse` problems. Being an evolutionary biologist, this lead me to learn `R` in the first place, I also check for any questions related phylogenetics. Today I answered a question on basic visual manipulation of trees using `ape` (analysis of phylogenetics and evolution), the main phylogenetic package in `R`. I reproduce my answer here mainly to go through the process of posting and work out any blogdown issues that might come up. The SO thread is [here]( https://stackoverflow.com/questions/59383667/phylogenetic-tree-ape-too-small/59401999#59401999), and my response follows.
+
+-----
+
+Here are some pointers using the `ape` package. I am using a random tree as we don't have access to yours, but these examples should be easily adaptable to your problem. If your provide a reproducible example of a specific question, I could take another look.
+
+First me make a random tree, add some species names, and plot it to show the numbers of nodes (both terminal and internal)
+  
+```{r}
+library(ape)
+set.seed(123)
+Tree <- rtree(10)
+Tree$tip.label <- paste("Species", 1:10, sep="_")
+plot.phylo(Tree)
+nodelabels() # blue
+tiplabels() # yellow
+edgelabels() # green
+```
+
+Then, to color any node or edge of the tree, we can create a vector of colors and provide it to the appropriate `*labels()` function.
+
+```{r}
+# using numbers for colors
+node_colors <- rep(5:6, each=5)[1:9] # 9 internal nodes 
+edge_colors <- rep(3:4, each=9) # 18 branches
+tip_colors <- rep(c(11,12,13), 4)
+# plot:
+plot.phylo(Tree, edge.color = edge_colors, tip.color = tip_colors) 
+nodelabels(pch = 21, bg = node_colors, cex=2)
+```
+
+To label just one node and the clade descending from it, we could do:
+  
+```{r}
+node_colors <- rep(NA, 9)
+node_colors[7] <- "green"
+node_shape <- ifelse(is.na(node_colors), NA, 21)
+edge_colors <- rep("black", 18)
+edge_colors[13:18] <- "green"
+plot(Tree, edge.color = edge_colors, edge.width = 2, label.offset = .1)
+nodelabels(pch=node_shape, bg=node_colors, cex=2)
+```
+
+
+Without your tree, it is harder to tell how to adjust the branches. One way is to reduce the size of the tip labels, so they take up less space. Another way might be to play around when saving the png or pdf.  
+
+
+There are other ways of doing these embellishments of trees, including the `ggtree` package.

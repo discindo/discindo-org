@@ -1,0 +1,188 @@
+---
+title: 'Using R and {paws} to populate DynamoDB tables #2'
+author: teo
+date: '2022-05-18'
+slug: []
+categories:
+  - r
+tags:
+  - paws
+  - aws
+  - dynamodb
+images: []
+---
+
+
+
+<p>In our <a href="https://www.discindo.org/post/2022-04-30-using-r-and-paws-to-populate-dynamodb-tables/">previous post</a> we covered some basics of using the <code>paws</code> <code>SDK</code> to interact with AWS <code>DynamoDB</code> from <code>R</code>. We wrote a few simple functions to prepare <code>R</code> lists in the appropriate format for <code>DynamoDB</code> and some wrappers to put these lists as items in the remote NoSQL database.</p>
+<p>These are good first steps, but we can’t really use these functions in a production setting, where we might need to populate a table with a few thousand or few million rows. In this post we’ll extend our work to accommodate these
+more realistic needs.</p>
+<div id="creating-dynamodb-tables-from-r" class="section level2">
+<h2>Creating <code>DynamoDB</code> tables from <code>R</code></h2>
+<p>We first create a function to wrap the call to <code>paws::dynamodb()</code> that we use to establish a client for the cloud database service. We assume the credentials are stored in an <code>.Renviron</code> file and available in <code>R</code> as environmental variables through <code>Sys.getenv</code>. Our connection function then is simply:</p>
+<pre class="r"><code>dynamo_connect &lt;- function() {
+  paws::dynamodb(config = list(
+    credentials = list(
+      creds = list(
+        access_key_id = Sys.getenv(&quot;ACCESS_KEY_ID&quot;),
+        secret_access_key = Sys.getenv(&quot;SECRET_ACCESS_KEY&quot;)
+      ),
+      profile = Sys.getenv(&quot;PROFILE&quot;)
+    ),
+    region = Sys.getenv(&quot;REGION&quot;)
+  ))
+}</code></pre>
+<p>Users experienced with <code>DynamoDB</code> might notice that we don’t use all config options,
+including <code>session_token</code> and <code>endpoint</code>. So far we haven’t needed these. As mentioned before,
+the <code>paws</code> documentation is extensive, so we point the user to <code>?paws::dynamodb</code> for more details
+regarding the configuration.</p>
+<p>Once we have the client ready, we can create a table from <code>R</code>. We’ll set both a <code>partition key</code>,
+or <code>HASH</code> key as specified in the <code>KeySchema</code> (<code>id</code>) and a <code>sort key</code> or <code>RANGE</code> (timestamp). Later
+we can query the table using these keys which together form a composite primary key, but for now
+we need to have the table, and start populating it.</p>
+<pre class="r"><code>con &lt;- dynamo_connect()
+con$create_table(
+  AttributeDefinitions = list(
+    list(
+      AttributeName = &quot;id&quot;,
+      AttributeType = &quot;N&quot;
+    ),
+    list(
+      AttributeName = &quot;timestamp&quot;,
+      AttributeType = &quot;N&quot;
+    )
+  ),
+  KeySchema = list(
+    list(
+      AttributeName = &quot;id&quot;,
+      KeyType = &quot;HASH&quot;
+    ),
+    list(
+      AttributeName = &quot;timestamp&quot;,
+      KeyType = &quot;RANGE&quot;
+    )
+  ),
+  ProvisionedThroughput = list(
+    ReadCapacityUnits = 1,
+    WriteCapacityUnits = 1
+  ),
+  TableName = &quot;example&quot;
+)</code></pre>
+<p>To confirm, we can query the DB for the list of tables:</p>
+<pre class="r"><code>con$list_tables()</code></pre>
+</div>
+<div id="loading-a-large-ish-table-into-dynamodb" class="section level2">
+<h2>Loading a large-ish table into DynamoDB</h2>
+<p>Our next step is to start loading data. For this, we’ll generate some random data.</p>
+<pre class="r"><code>data_to_put &lt;- data.frame(
+  id = 1:10000,
+  timestamp = as.numeric(seq.POSIXt(
+    from = as.POSIXct(&quot;2020-01-01&quot;),
+    to = Sys.time(),
+    length.out = 10000
+  )),
+  measurement = sample.int(n = 100, size = 10000, replace = TRUE)
+)</code></pre>
+<p>We can now try to put these data into our newly created table using the functions from
+our previous post on <a href="https://discindo.org/post/2022-04-30-using-r-and-paws-to-populate-dynamodb-tables/"><code>{paws}</code></a>.
+But that would not be a great approach, because there we are using APIs intended for putting single
+items or a small volume. Instead, lets write a wrapper around the <code>batch_write_item</code> API, so we can load our data in bulk.</p>
+<p>To batch write to our DynamoDB table, we need to create a requests for each item
+(row of the table) we wish to put. The put requests have the following format,
+identical to the nested named list produced by our function <code>dynamo_item_prep</code>, but
+with two more layers to label the <code>Item</code> and the type of request as <code>PutRequest</code>.</p>
+<pre><code>list(PutRequest = list(Item = dynamo_item_prep(.item = data_to_put[1, ])))
+#&gt; $PutRequest
+#&gt; $PutRequest$Item
+#&gt; $PutRequest$Item$id
+#&gt; $PutRequest$Item$id$N
+#&gt; [1] 1
+
+
+#&gt; $PutRequest$Item$timestamp
+#&gt; $PutRequest$Item$timestamp$N
+#&gt; [1] 1577858400
+
+
+#&gt; $PutRequest$Item$measurement
+#&gt; $PutRequest$Item$measurement$N
+#&gt; [1] 28</code></pre>
+<p>A list of 25 <code>PutRequest</code>s (or <code>DeleteRequest</code>s) weighing up to 16MB can be submitted in one batch
+(see <code>?paws.database::dynamodb_batch_write_item</code>), so we also need a way to divide our
+10K items into 25-item chunks. Our updated <code>dynamo_bulk_put</code> function applies these two
+modifications to adjust the formatting and split the items into digestible chunks.</p>
+<pre class="r"><code>dynamo_bulk_put &lt;- function(.con, .table, .df) {
+  requests &lt;- lapply(1:nrow(.df), function(i) {
+    list(PutRequest = list(Item = dynamo_item_prep(.item = .df[i, ])))
+  })
+  
+  n_items &lt;- length(requests)
+  # from https://stackoverflow.com/a/18857482/8543257
+  chunked &lt;-
+    split(requests, rep(1:ceiling(n_items / 25), each = 25)[1:n_items])
+  
+  lapply(chunked, function(L) {
+    requestList &lt;- list()
+    requestList[[.table]] &lt;- L
+    .con$batch_write_item(RequestItems = requestList)
+  })
+}</code></pre>
+<p>To test this, we first delete and re-create the <code>example</code> table:</p>
+<pre class="r"><code>con$delete_table(TableName = &quot;example&quot;)
+con$create_table(
+  AttributeDefinitions = list(
+    list(
+      AttributeName = &quot;id&quot;,
+      AttributeType = &quot;N&quot;
+    ),
+    list(
+      AttributeName = &quot;timestamp&quot;,
+      AttributeType = &quot;N&quot;
+    )
+  ),
+  KeySchema = list(
+    list(
+      AttributeName = &quot;id&quot;,
+      KeyType = &quot;HASH&quot;
+    ),
+    list(
+      AttributeName = &quot;timestamp&quot;,
+      KeyType = &quot;RANGE&quot;
+    )
+  ),
+  ProvisionedThroughput = list(
+    ReadCapacityUnits = 1,
+    WriteCapacityUnits = 1
+  ),
+  TableName = &quot;example&quot;
+)</code></pre>
+<p>And then try to put all 10K rows:</p>
+<pre><code>dynamo_bulk_put(.con = con, .table = &quot;example&quot;, .df = data_to_put)
+#&gt; Error: com.amazonaws.dynamodb.v20120810 (HTTP 400). The level of configured provisioned throughput for the table was
+#&gt; exceeded. Consider increasing your provisioning level with the UpdateTable API.</code></pre>
+<p>But we get an error because we are making more requests than the default provisioned throughput limit for our table.</p>
+<p>To address this, we should increase the provisioning level using <code>dynamodb_update_table</code>. In this
+case we should increase the <code>WriteCapacityUnits</code>, as we are trying to write data,
+and try to load our 10K rows again. For details on the meaning of the capacity units,
+and different types of provisioning for DynamoDB tables, consult the <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadWriteCapacityMode.html">official documentation</a>.</p>
+<pre class="r"><code>con$update_table(
+  ProvisionedThroughput = list(
+    ReadCapacityUnits = 1,
+    WriteCapacityUnits = 50
+  ),
+  TableName = &quot;example&quot;
+)
+dynamo_bulk_put(.con = con, .table = &quot;example&quot;, .df = data_to_put)</code></pre>
+<p>After loading all of our data, we can check the number of items in the cloud table with:</p>
+<pre class="r"><code>con$scan(TableName = &quot;example&quot;, Select = &quot;COUNT&quot;)$Count
+#&gt; [1] 10000</code></pre>
+<p>Finally, remember to update the provisioning to lower the write capacity units to default level,
+and avoid paying four resources we no longer need.</p>
+<pre class="r"><code>con$update_table(
+  ProvisionedThroughput = list(
+    ReadCapacityUnits = 1,
+    WriteCapacityUnits = 1
+  ),
+  TableName = &quot;example&quot;
+)</code></pre>
+</div>

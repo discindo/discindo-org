@@ -1,0 +1,28 @@
+---
+title: A guide for reproducible data analysis in Macedonian
+author: teofil
+date: '2020-12-25'
+slug: []
+categories:
+  - R
+  - rskopje
+tags:
+  - rmd
+  - data analysis
+  - reproducible
+  - workshops
+images: []
+---
+
+
+2020 has been a sad and difficult year for many and certainly unusual for all of us. For us at Discindo, the adjustments required by limited mobility and closures were not easy, but our work is mostly online and remote anyway, so we are surely much better off than most.
+
+One of the activities we were involved this year was to contribute to an ongoing project that involved several in-person collaborative sessions and workshops with a broader audience. At the beginning of the year, the [Free Software Macedonia NGO](https://slobodensoftver.org.mk/about_free_software_macedonia) (of which we are members, and which hosts the usual in-person [RSkopje](https://www.meetup.com/RSkopje) meetups.) was awarded a grant from [Civica Mobilitas](https://civicamobilitas.mk/en/) to organize introductory workshops for open data and reproducible research using tools in the `R` and `Python` spheres. As 2020 progressed, and it became clear that in person training workshops at FSM's hacklab [KIKA](https://kika.spodeli.org/en/) were out of the question, we reorganized the activities to happen online. We had a total of five teleconference workshops on the basics of reproducible data analysis using `R` and `git` tools like `Rmd`, `ggplot`, `gh-pages`. Although we feel like the workshop attendance could have been better, we had a great first experience with this type of educational project, and we learned a lot in the process.
+
+One of the project's deliverables was a short introductory guide for reproducible data analysis. We wrote this document over the past two months, and recently it had its release and promotion in a small online press conference. The booklet (as we have come to call it) can be accessed [here](https://discindo.github.io/booklet/) and the `bookdown` source code is at this Discindo `git` [repository](https://github.com/discindo/booklet). Here we'll briefly talk about the content and future plans for this guide, and even more briefly reflect on our experience in writing it.
+
+The content of the booklet was guided by the workshop schedule. An important aspect for us was to show an entire workflow starting with some analysis in an interactive session, that gets converted to a script, then to a `rmarkdown` report rendered to a static `HTML`, that finally gets deployed on `gh-pages` as a public record of the analysis. In line with this, in the first couple of chapters, we introduced the topic of open data and reproducible research and discussed the toolkit we would use throught the book, `R` and `git`. Of course, `R` has a wealth of resources for reproducible researh, whether on the side of literate programming (`rmarkdown`, `knitr`, `flexdashboard`, and many more) or on the side of project and workflow management (`goodpractices`, `devtools`, `drake`, `workflowr`, and many more). Of course, this owes a lot to the very active community of researchers, data scientists, and software engineers who use R and care about open data, transparent analyses, and reproducibility, for example the [rOpenSci](https://ropensci.org/) organization.
+
+Thereafter, through a simple hypothetical scenario, we introduce how and why seemingly simple tasks and code can be or can become after some time irreproducible. We talk about the importance of dependency management, absolute paths, and documentation. We then discuss some ways in which a simple script whose result cannot be reproduced outside of the context where it was created can be converted to a bit more robust, documented program, that makes minimal assumptions about the environment in which it is going to be used. With the main principles of reproducibility out of the way, we introduce literate programming and parametrized `Rmd` reports, which are a great way to 'scale' an analysis while maintaining simple and manageable report code. We also discuss organization of code and data in a bundle (package) that be shared such that even someone that does not have the exact inputs required for a particular analysis, can nonetheless carry out our analysis, as is very common in the sciences with data+code repositories like [DataDryad](https://datadryad.org/stash) and [Zenodo](https://zenodo.org/). We wrap up this first version of the guide with a quick intro to `git` and a tutorial for publishing a locally generated `HTML` report as a simple webpage using GitHub and `gh-pages`.
+
+Our future plans include revising this first version after some reader feedback and discussing what would be the most useful additions. The booklet is rather thin on practical code at this time. One option for expansion would be to include one or two realistic worked examples of making a reproducible project with data and code. Another possibly interesting idea is to talk about `Python` analogs to the `R` tools and workflows we discuss. Adding a chapter on `make`- and `git`-based workflows with tools like `drake` and `workflowr`, as well as a chapter on `docker` are definitive additions for the near to mid-term future of this guide.

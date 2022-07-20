@@ -1,0 +1,33 @@
+---
+title: WindsoraiR package for accessing Windsor.ai API from R
+author: novica
+date: '2021-04-21'
+slug: windsorair-package-for-accessing-windsorai-api-from-r
+categories:
+  - R
+tags:
+  - package
+  - windsorair
+images: []
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+
+<p>I recently got acquainted with <a href="https://windsor.ai">Windsor.ai</a> – a hub for connecting various sources of marketing data like Facebook ads or Google Analytics. The platform is interesting because it provides ways to analyze and visualize your merged marketing data through template dashboards or to pipe the data to any number of tools (Python, R, Google data Studio, Tableau, etc). In collaboration with the people at Winsdor.ai, I developed a very simple package to interface with the <a href="https://www.windsor.ai/api-fields/">Windsor.ai API</a>.</p>
+<p>The new package, called <code>windsoraiR</code>, is available on <a href="https://cran.r-project.org/package=windsoraiR">CRAN</a> and on <a href="https://github.com/windsor-ai/windsoraiR">Github</a>. Its first incarnation is rather simple. I just provide one function to access the API and return the queried data in the form of a <code>data.frame</code> making it super easy to do some additional wrangling, charting or analysis. To access data from the Windsor.ai API, one needs to acquire a free API key and set up data sources (this can be pretty much any online channel of marketing data, see more on the <a href="https://windsor.ai">Windsor.ai website</a>).</p>
+<p>As per the <a href="https://github.com/windsor-ai/windsoraiR">Github Readme file</a>, usage is quite straightforward.</p>
+<p>We install from CRAN:</p>
+<pre class="r"><code>install.packages(&quot;windsoraiR&quot;)</code></pre>
+<p>Or using <code>remotes</code> or <code>devtools</code>:</p>
+<pre class="r"><code># install.packages(&quot;remotes&quot;)
+remotes::install_github(&quot;windsor-ai/windsoraiR&quot;)</code></pre>
+<p>Once we have the package installed, we can fetch data using <code>winsdoraiR::winsdor_fetch()</code>:</p>
+<pre class="r"><code>winsdor_data &lt;- 
+windsor_fetch(api_key = &quot;your api key&quot;,
+ connector = &quot;all&quot;,
+ date_preset = &quot;last_7d&quot;,
+ fields = c(&quot;source&quot;, &quot;campaign&quot;, &quot;clicks&quot;,
+            &quot;medium&quot;, &quot;sessions&quot;, &quot;spend&quot;))
+</code></pre>
+<p>This, of course, is work in progress and I would love feedback and ideas for future development. How might one want to query the API and or what helper function might be good to have to process the results in R once data has been pulled? Issues and pull requests are welcomed on <a href="github.com/windsor-ai/windsoraiR">Github</a>. By the way, for the <code>python</code> lovers, a python package equivalent to <code>winsdoraiR</code> is also <a href="https://github.com/windsor-ai/pywindsorai">available</a>.</p>

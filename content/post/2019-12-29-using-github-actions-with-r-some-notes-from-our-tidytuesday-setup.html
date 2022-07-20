@@ -1,0 +1,26 @@
+---
+title: 'Using GitHub actions with R: Some notes from our #TidyTuesday setup'
+author: novica
+date: '2019-12-29'
+slug: using-github-actions-with-r-some-notes-from-our-tidytuesday-setup
+categories:
+  - R
+tags:
+  - github actions
+  - rmd
+  - ci
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Beginning in September 2019 we started organizing a #TidyTuesday event at the hacklab in Skopje - <a href="https://kika.spodeli.org/">KIKA</a>. It has been 15 events in 2019, and it’s been great. One of the things we wanted to do from the outset was to have an online repository of all the code and presentations. Both to have a record or activities for ourselves and to share our work with other R enthusiasts. The goal was to have a GitHub repository to house the code, and then on a separate branch to have the <code>.Rmd</code> files used for presentations rendered into <a href="https://discindo.github.io/TidyTuesdayAtKIKA/">html</a> so that they would be browsable on the Internet.</p>
+<p>For the first few events, I did this by hand. I pushed <code>.Rmd</code> on the GitHub repository, and a corresponding <code>html</code> on a <code>gh-pages</code> branch. But this fall, GitHub enabled <a href="https://github.com/features/actions">actions</a> for all users, so we thought it would be good to automate the <code>gh-pages</code> publishing.</p>
+<p>The idea was good, but we hit some bumps in the implementation.</p>
+<p><a href="https://damjan.softver.org.mk/">Damjan</a> configured the workflow to run on Ubuntu latest (18.04). However, Ubuntu doesn’t have <code>CRAN</code> packages by default and installing them from <code>apt</code> or from <code>CRAN</code> was too slow.</p>
+<p>This made us look in another direction. We found a <a href="https://hub.docker.com/r/rocker/tidyverse/"><code>tidyverse</code> Docker container</a> that would solve issues with the installation needed <code>R</code> packages. It almost looked like a win, only to see that some of the <code>.Rmd</code> files load libraries that are not part of the <code>tidyverse</code> Docker container. Adding more dependencies to the workflow is possible, but dependencies have dependencies and that slows down the process. Currently it takes about 12 minutes to deploy the gh-pages branch. It is possible that this will take longer in the future if the repository grows with new notebooks and libraries needed in them.</p>
+<p>The current setup, firstly installs several Ubuntu packages through the <a href="https://github.com/discindo/TidyTuesdayAtKIKA/blob/master/.github/workflows/main.yml">main.yml</a> configuration.</p>
+<p>Afterwards it builds all the <code>R</code> packages <a href="https://github.com/discindo/TidyTuesdayAtKIKA/blob/master/Rdependencies">needed</a> to render the <code>Rmd</code> files. We do this with:</p>
+<pre class="r"><code>Rscript -e &#39;install.packages(read.table(&quot;Rdependencies&quot;, colClasses = &quot;character&quot;)[,1])&#39;</code></pre>
+<p>Another thing to be aware of is that the Rmd files must succesfuly render, otherwise the <code>CI</code> will fail. So it is a good practice to check that before pushing the file to GitHub.</p>
+<p>The GitHub repository has the <a href="https://github.com/discindo/TidyTuesdayAtKIKA">code</a> from most, but not all 15 TidyTuesday events at KIKA. Our GitHub actions setup is also maintained in case other <code>R</code> users want to try it and perhaps improve it.</p>
