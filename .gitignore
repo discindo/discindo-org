@@ -2,6 +2,6 @@
 .DS_Store
 Thumbs.db
 .hugo_build.lock
-public/
+/public/
 /resources/
 .Rhistory
