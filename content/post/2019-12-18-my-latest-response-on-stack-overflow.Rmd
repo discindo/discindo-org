@@ -1,6 +1,6 @@
 ---
 title: Basic visual manupulation of phylogenies in R
-author: Teofil
+authors: ['teo']
 date: '2019-12-18'
 slug: basic-visual-manipulation-of-phylogenies-in-r
 categories:

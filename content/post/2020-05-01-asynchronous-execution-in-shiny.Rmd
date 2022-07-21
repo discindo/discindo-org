@@ -1,8 +1,6 @@
 ---
 title: "Asynchronous background execution in Shiny using callr"
-author:
-- novica
-- teofil
+authors: ['teo', 'novica']
 date: '2020-05-01'
 slug: asynchronous-execution-in-shiny
 tags:

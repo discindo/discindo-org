@@ -1,6 +1,6 @@
 ---
 title: WindsoraiR package for accessing Windsor.ai API from R
-author: novica
+authors: ['novica']
 date: '2021-04-21'
 slug: windsorair-package-for-accessing-windsorai-api-from-r
 categories:

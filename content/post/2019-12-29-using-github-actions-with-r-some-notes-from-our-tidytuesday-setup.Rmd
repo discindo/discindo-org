@@ -1,6 +1,6 @@
 ---
 title: 'Using GitHub actions with R: Some notes from our #TidyTuesday setup'
-author: novica
+authors: ['novica']
 date: '2019-12-29'
 slug: using-github-actions-with-r-some-notes-from-our-tidytuesday-setup
 categories:

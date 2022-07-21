@@ -1,7 +1,7 @@
 ---
 title: 'OpenBudget: A Shiny app for transparent finances in local government in North
   Macedonia'
-author: Teofil
+authors: ['teo']
 date: '2021-05-21'
 slug: openbudget-a-shiny-app-for-transparent-finances-in-local-government-in-north-macedonia
 categories:

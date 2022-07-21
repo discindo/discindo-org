@@ -1,6 +1,6 @@
 ---
 title: Few things I learned while writing an R package
-author: novica
+authors: ['novica']
 date: '2020-07-23'
 slug: few-things-i-learned-while-writing-an-r-package
 categories:
