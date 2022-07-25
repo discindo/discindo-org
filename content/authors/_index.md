@@ -7,10 +7,12 @@ title: About us
 view: 2
 ---
 
-This blog contains interesting and helpful notes that come up as we are delivering (mostly) `R`, and `Shiny` solutions to clients around the globe. 
+Welcome to `discindo.org`! This is a space where we document our learning and discoveries
+as we navigate through the data science + data engineering universe. We mostly focus on `R` and 
+`Shiny` and how to build data solutions using these in the cloud.  
 
 Our [projects](/project) page has packages and tools we have developed as `free software`. 
 
-Our [website](https://discindodata.com) has description of projects and references from clients.
+Our [website](https://discindodata.com) has description of previous projects and references from our clients.
 
-Get in touch if you want to hire us.
+We would love to hear from you! Please get in touch through the [contact](/contact) page. 
