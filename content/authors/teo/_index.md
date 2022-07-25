@@ -7,7 +7,7 @@ education:
     year: 2014
   - course: BSci in Biochemistry and Physiology
     institution: Sts Cyril & Methodius University - Skopje
-    year: 2008
+    year: 2005
 email: "teofiln@gmail.com"
 highlight_name: true
 interests:
