@@ -1,6 +1,6 @@
 ---
 title: A guide for reproducible data analysis in Macedonian
-author: teofil
+authors: ['teo']
 date: '2020-12-25'
 slug: []
 categories:

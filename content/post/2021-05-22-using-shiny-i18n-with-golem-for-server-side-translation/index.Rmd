@@ -1,6 +1,6 @@
 ---
 title: Using {shiny.i18n} with {golem} for server-side translation
-author: Teofil
+authors: ['teo']
 date: '2021-05-22'
 slug: using-shiny-i18n-with-golem-for-server-side-translation
 categories:

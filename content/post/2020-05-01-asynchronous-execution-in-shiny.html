@@ -1,8 +1,6 @@
 ---
 title: "Asynchronous background execution in Shiny using callr"
-author:
-- novica
-- teofil
+authors: ['teo', 'novica']
 date: '2020-05-01'
 slug: asynchronous-execution-in-shiny
 tags:
@@ -14,7 +12,6 @@ categories:
 - Shiny
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>When designing <code>Shiny</code> applications we commonly associate asynchronous execution with multiple concurrent running sessions of an application. In such cases, when one user has requested a longer computation or a database query, the other users have to wait for this task to finish before they can see their plots and tables. This types of problems are elegantly solved with parallelization with <a href="https://rstudio.github.io/promises/articles/overview.html">promises</a>, so <code>Shiny</code> apps can scale up to many concurrent users.</p>

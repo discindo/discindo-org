@@ -1,6 +1,6 @@
 ---
 title: 'Six months of #rstats workshops in Skopje, and more'
-author: novica
+authors: ['novica']
 date: '2020-03-07'
 slug: six-months-of-rstats-workshops-in-skopje-and-more
 categories: [R, Python]

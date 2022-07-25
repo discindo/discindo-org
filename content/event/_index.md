@@ -1,8 +1,8 @@
 ---
-cms_exclude: true
-header:
-  caption: ""
-  image: ""
-title: Recent & Upcoming Talks
-view: 2
+_build:
+  render: never
+cascade:
+  _build:
+    render: never
+    list: always
 ---

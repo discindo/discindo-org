@@ -1,6 +1,6 @@
 ---
 title: Building a multi-session {shiny} application with {brochure}
-author: teo
+authors: ['teo']
 date: '2022-05-09'
 slug: []
 categories:
