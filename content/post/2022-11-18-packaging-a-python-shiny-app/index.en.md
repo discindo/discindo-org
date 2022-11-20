@@ -11,7 +11,7 @@ tags:
   - golem
 subtitle: ''
 summary: ''
-authors: []
+authors: [novica]
 lastmod: '2022-11-18T21:52:39+01:00'
 featured: no
 image:
@@ -72,12 +72,12 @@ shiny_app/
 │       ├── __init__.py
 │       ├── app.py
 │       └── helpers.py
-|       └── fct/
+│       └── fct/
 │           ├── __init__.py
 │           ├── fct_1.py
 │           ├── fct_2.py
 │           └── fct_3.py
-|       └── mod/
+│       └── mod/
 │           ├── __init__.py
 │           ├── mod_1.py
 │           ├── mod_2.py
