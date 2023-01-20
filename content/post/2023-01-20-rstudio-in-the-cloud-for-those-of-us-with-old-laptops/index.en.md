@@ -41,15 +41,15 @@ Once the instance is launched we head over to our SSH terminal, log in, and inst
 
 Once everything is installed, and it a pretty quick installation process, `Rstudio server` is started automatically and you can see a notification about that in the SSH console.
 
-The cool thing about Ubuntu is that almost all packages that I needed are available on their repositories, so I needed to do zero `install.packages()`  to compile packages from source. That is great.
+The cool thing about Ubuntu is that almost all packages that I needed are available on the Ubuntu repositories, so I needed to do zero `install.packages()` to compile packages from source. Installing the Ubuntu binaries with the usual `apt install` is fast, and all packages can be updated as the system as a whole is updated too. That is great.
 
 # Step 2: Add a user for Rstudio and configure Rstudio server
 
 It's a good practice to limit who can log in to Rstudio, and the Ubuntu forums answer this specific question on [how to add a new user](https://askubuntu.com/questions/838443/create-a-username-and-password-in-rstudio-server) on the system. Then follow the link to Posit's documentation about [Restricting by group)(https://docs.posit.co/ide/server-pro/authenticating_users/restricting_access.html).
 
-Once a user is added and a password is set, you can also [configure](https://support.posit.co/hc/en-us/articles/200552316-Configuring-RStudio-Workbench-RStudio-Server) `Rsudio server` to run on port 80, and restart the `rstudio-server-service` with `sudu systemctl restart rstudio-server.service`. Assuming everything is correct the Rstudio login screen will show up on the public IP address of the EC2 instance.
+Once a user is added and a password is set, you can also [configure](https://support.posit.co/hc/en-us/articles/200552316-Configuring-RStudio-Workbench-RStudio-Server) `Rsudio server` to run on port 80, and restart the `rstudio-server-service` with `sudo systemctl restart rstudio-server.service`. Assuming everything is correct the Rstudio login screen will show up on the public IP address of the EC2 instance.
 
-Not need but useful addition to the configuration is to change the default shell for the newly created user by running  `chsh` in the SSH console. I prefer `bash`.
+Not needed, but useful addition to the configuration is to change the default shell for the newly created user by running  `chsh` in the SSH console. I prefer `bash`.
 
 # Step 3: Set up a new SSH key for accessing github (or don't)
 
