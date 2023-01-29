@@ -31,7 +31,7 @@ Let's say you've done this. Kept the EC2 for some time and then decided to termi
 
 Enter `terraform`. It is a tool to write infrastructure as code, or more descriptively, as human readable instructions to define resources that can be run on any cloud provider. And since these instructions live in text files, you can have them versioned with `git`, and keep track of any changes over time. I think this is awesome.
 
-Additionally, `terraform` works with all major cloud providers, so if you prefer to use something else insted of `aws` you can adjust.
+Additionally, `terraform` works with all major cloud providers, so if you prefer to use something else insted of `aws` you can adapt the code.
 
 ## Prerequisites for trying out terraform for configuring Rstudio server 
 
@@ -42,7 +42,7 @@ Two things need to be done before we can see `terraform` in action.
 
 I am not going to go into details here because different operating systems might have different steps on how to do it, so I suggest you follow the official documentation for your system. 
 
-That these have been successfully installed you can check with `aws --version` and `terraform --version` in your preferred shell.
+That these have been successfully installed you can check with `aws --version` and `terraform --version` in your preferred terminal.
 
 Additionally, `aws` needs to be configured by typing: `aws configure`. Then we have to enter the AWS Access Key ID, AWS Secret Access Key, and Default Region Name for the IAM user. If you don't have IAM user set up, you really should. Here is a [guide from AWS](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)).
 
@@ -81,12 +81,15 @@ Its worth understanding the above specification and the best place to learn more
 
 The changes that I made were:
 
-1. to add a different tag, so I changed `ExampleAppServerInstance` to `RstudioTerraform`, and
+1. to add a different tag, so I changed `ExampleAppServerInstance` to `RstudioTerraform`, 
 
-2. to change the AMI. Since I was using Ubuntu before, I want to keep that, so I head out to [Ubuntu Cloud Image Finder](https://cloud-images.ubuntu.com/locator/) and find the AMI code for `22.04` which is `ami-03e08697c325f02ab`.
+2. to change the AMI. Since I was using Ubuntu before, I want to keep that, so I head out to [Ubuntu Cloud Image Finder](https://cloud-images.ubuntu.com/locator/) and find the AMI code for `22.04` which is `ami-03e08697c325f02ab`, and
 
-Additionally I added a security group and a key name. If you did the the previous  manual steps you should have these ready so just name them in the configuration.  Finally, to test that things work, I am requesting an output of the public IP of 
-the resource that is going to be created. So my final `main.tf` file looks like this:
+3. to change the region to `eu-central-1`.
+
+Additionally I added a security group and a key name. If you did the the previous manual steps you should have these ready, so just name them in the configuration. If not create them on the AWS console. It is possible, of course, to create them with `terraform`, but we won't go there in this blogpost. 
+
+Finally, to test that things work, I am requesting an output of the public IP of the resource that is going to be created. So my final `main.tf` file looks like this:
 
 ```
 terraform {
@@ -123,7 +126,7 @@ Now, once this is saved, in the folder that holds the `main.tf` file, in the ter
 
 The first two commands should be instantaneous, and the last one should take maybe 20 seconds to complete. 
 
-The EC2 instance should show up in the AWS console, and you can verify that the IP address that was printed on the terminal is the same one that the instance has in the Console.
+The EC2 instance should show up in the AWS console, and you can verify that the IP address that was printed on the terminal is the same one that the instance has in the Console listed under public IP address.
 
 This only gets us half way. We still need to do bunch of stuff before we have Rstudio  server running. But for now you can do `terraform destroy` and see how the EC2 instance is being terminated. Repeating `terraform apply` will create a new instance, and `terraform destroy` will destroy it again.
 
