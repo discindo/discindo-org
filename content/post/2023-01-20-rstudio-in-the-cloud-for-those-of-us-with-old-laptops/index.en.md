@@ -1,5 +1,5 @@
 ---
-title: 'Rstudio in the cloud for those of us with old laptops '
+title: 'Rstudio in the cloud for those of us with old laptops'
 author: novica
 date: '2023-01-20'
 slug: rstudio-in-the-cloud-for-those-of-us-with-old-laptops
