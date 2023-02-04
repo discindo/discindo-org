@@ -11,7 +11,7 @@ slides:
 summary: R package to make it easier to go from an R script to a deployed AWS Lambda function.
 tags:
 - R
-title: newscatcheR
+title: r2lambda
 authors: ['teo']
 url_code: ""
 url_pdf: ""
