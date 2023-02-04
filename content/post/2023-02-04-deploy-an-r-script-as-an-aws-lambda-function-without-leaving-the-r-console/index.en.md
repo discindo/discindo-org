@@ -1,7 +1,7 @@
 ---
 title: Deploy an R script as an AWS Lambda function without leaving the R console
-author: Teofil Nakov
-date: '2023-01-29'
+author: Teo
+date: '2023-02-04'
 slug: deploy-an-r-script-as-an-aws-lambda-function-without-leaving-the-r-console
 categories:
   - R
@@ -15,8 +15,8 @@ tags:
   - package
 subtitle: ''
 summary: ''
-authors: []
-lastmod: '2023-01-29T22:02:01-06:00'
+authors: ['teo']
+lastmod: '2023-02-04T22:02:01-06:00'
 featured: no
 image:
   caption: ''
