@@ -57,7 +57,7 @@ it easier to deploy `R` code as AWS Lambda function by automating the above proc
 
 # `{r2lambda}`
 
-Once everything is set up (see below), `{r2lambda}` will let you do the following:
+Once everything is set up (see below), [{r2lambda}](https://github.com/discindo/r2lambda/) will let you do the following:
 
 1. Write your `R` code:
 
