@@ -22,15 +22,15 @@ image:
   caption: ''
   focal_point: ''
   preview_only: no
-projects: []
+projects: ['r2lambda']
 ---
 
 # Overview and motivation
 
 AWS Lambda is a serverless compute service that lets us deploy any code as a cloud
 function without worrying about setting up a compute server (for example like discussed
-[here](https://discindo.org/post/rstudio-in-the-cloud-for-those-of-us-with-old-laptops/) 
-and [here](https://discindo.org/post/rstudio-in-the-cloud-for-those-of-us-with-old-laptops-part-2-automating-with-terraform/)). 
+[here](/post/rstudio-in-the-cloud-for-those-of-us-with-old-laptops/) 
+and [here](/post/rstudio-in-the-cloud-for-those-of-us-with-old-laptops-part-2-automating-with-terraform/)). 
 The code can be deployed as a zip archive or a container image. In the `R` case, 
 only the container option is available and enabled by the [`{lambdr}`](https://lambdr.mdneuzerling.com/index.html) 
 package (see also this [workflow](https://github.com/Appsilon/r-lambda-workflow)). 
