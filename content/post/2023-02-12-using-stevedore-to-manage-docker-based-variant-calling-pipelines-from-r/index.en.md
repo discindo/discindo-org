@@ -101,7 +101,7 @@ docker_cli$image$list()[["repo_tags"]]
 
 ```
 
-and we can also start a container, here, without any arguments to we can see
+and we can also start a container, here, without any arguments, so we can see
 the help:
 
 ``` r
