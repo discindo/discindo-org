@@ -21,6 +21,7 @@ image:
   focal_point: ''
   preview_only: no
 projects: []
+show_related: true
 ---
 
 # Docker-based variant-calling pipelines
