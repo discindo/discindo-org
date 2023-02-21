@@ -21,8 +21,8 @@ marketing:
     description: 'Data are fun! Data science and data solutions with R and Shiny in the Cloud'
     twitter: 'podatoci'
   analytics:
-    google_analytics: 'G-DF61YLH749'
-    #google_tag_manager: 'GTM-T3SN4G9'
+    #google_analytics: 'G-DF61YLH749'
+    google_tag_manager: 'GTM-T3SN4G9'
     baidu_tongji: ''
   verification:
     google: ''
