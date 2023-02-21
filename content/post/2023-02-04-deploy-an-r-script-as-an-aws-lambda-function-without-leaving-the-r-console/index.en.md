@@ -17,12 +17,13 @@ subtitle: ''
 summary: ''
 authors: ['teo']
 lastmod: '2023-02-04T22:02:01-06:00'
-featured: no
+featured: yes
 image:
   caption: ''
   focal_point: ''
   preview_only: no
 projects: ['r2lambda']
+show_related: true
 ---
 
 # Overview and motivation
