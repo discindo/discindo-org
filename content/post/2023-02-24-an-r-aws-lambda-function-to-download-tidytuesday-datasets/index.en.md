@@ -154,7 +154,7 @@ we are good to deploy to AWS.
 
 ### 3. Deploy
 
-The deploy step is simple, in that all we need to do is specify the name (tag) of 
+The deployment step is simple, in that all we need to do is specify the name (tag) of 
 the Lambda function we wish to push to AWS ECR. The `deploy_lambda` function also
 accepts `...`, which are named arguments ultimately passed onto 
 `paws.compute:::lambda_create_function`. This is the function that calls the Lambda
