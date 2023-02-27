@@ -35,8 +35,8 @@ a schedule.
 We start with a simple function that does not require any input and does not return
 anything. If this example lambda is to run on a schedule, we don't want to worry
 about any input arguments. Also, we want this lambda function to simply have a 
-side-effect, like printing something to the logs, without returning any data or writing
-to a database. This will help us greatly with the setup, in that we'll be able deploy 
+side effect, like printing something to the logs, without returning any data or writing
+to a database. This will help us greatly with the setup, in that we'll be able to deploy 
 and schedule the lambda with minimal involvement from other AWS services.
 
 With this in mind, we have the following function that simply prints the system time.
@@ -176,7 +176,7 @@ data.frame(Current_time_lambda = current_time_messages)
 ```
 
 Evidently, the Lambda function printed the system time every one minute, as we 
-intened!
+intended!
 
 ## Clean up
 
@@ -234,4 +234,5 @@ not the workflows from `r2lambda` are working for other people -- not many have
 tried it so far. I am also interested in suggestions on how to 
 improve the interface, what features to add, what additional documentation to include, 
 and so on. Try it and share your experience!
+
 
