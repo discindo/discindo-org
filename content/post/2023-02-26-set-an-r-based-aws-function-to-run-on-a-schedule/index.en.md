@@ -1,5 +1,5 @@
 ---
-title: Set an R-based AWS function to run on a schedule
+title: Set an R-based AWS Lambda function to run on a schedule
 author: 'teo'
 date: '2023-02-26'
 slug: set-an-r-based-aws-function-to-run-on-a-schedule
@@ -25,7 +25,7 @@ projects: ['r2lambda']
 show_related: true
 ---
 
-A common use of the AWS Lambda service is to set the cloud functions to run on a 
+A common use of the AWS Lambda service is to set a function to run on a 
 recurring schedule, e.g. to collect logs, move data, or perform some ETL process.
 In this post, we'll see how we can set up an AWS Lambda function, running `R`, on 
 a schedule.
@@ -51,7 +51,7 @@ current_time <- function() {
 
 ## Build, test, and deploy
 
-Here, we follow the procedure described in `Tidy Tuesday dataset Lambda` vignette.
+Then, we follow the procedure described in [`Tidy Tuesday dataset Lambda` post](https://discindo.org/post/an-r-aws-lambda-function-to-download-tidytuesday-datasets/).
 We write this to a file that we'll use to build the lambda `docker` image:
 
 ```{r}
@@ -94,8 +94,9 @@ as 3 seconds should be enough to get and print the current time.
 r2lambda::deploy_lambda(tag = "current_time")
 ```
 
-Finally, we invoke the cloud instance of our function, to make sure everything went 
-well. Be sure to include the logs, as this particular function does not return anything.
+Finally, to make sure everything went well, we invoke the cloud instance of our 
+function. Be sure to include the logs, as this particular function does not return 
+anything. 
 
 ```{r}
 r2lambda::invoke_lambda(
@@ -109,20 +110,22 @@ r2lambda::invoke_lambda(
 ## Schedule to run every minute
 
 To make a lambda function run on a recurring schedule, we need to update an already 
-deployed function. This involves three steps and two AWS services, Lambda and EventBridge:
+deployed function. This involves three steps and two AWS services, [Lambda](https://aws.amazon.com/lambda/) 
+for serverless computing and [EventBridge](https://aws.amazon.com/eventbridge/) 
+for serverless event routing:
 
 - creating a schedule event role (EventBridge, `paws::eventbridge`)
 - adding permissions to this role to invoke lambda functions (Lambda, `paws::lambda`)
-- adding our target lambda function to eventBridge
+- adding our target lambda function to event (EventBridge, `paws::eventbridge`)
 
 Detailed instructions are available in the [AWS documentation](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-run-lambda-schedule.html).
-The function `schedule_lambda` abstracts these three steps in one go. To set a lambda 
+The function `schedule_lambda` abstracts these three steps in one go. To set a Lambda 
 on a schedule, we need the name of the function we wish to update, and the rate at which
-we want EventBridge to invoke it. Two rate-setting expression formats are supported, 
+we want EventBridge to invoke it. Two expression formats for setting the rate are supported, 
 `cron` and `rate`. For example, to schedule a lambda to run every Sunday at midnight, 
 we could use `execution_rate = "cron(0 0 * * Sun)"`. Alternatively, to schedule a lambda
 to run every 15 minutes, we might use `execution_rate = "rate(15 minutes)"`. The details are
-in this [article](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html)
+in this [AWS article](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html)
 
 ```{r}
 r2lambda::schedule_lambda(lambda_function = "current_time", execution_rate = "rate(1 minute)")
@@ -138,7 +141,6 @@ every minute is to check the logs.
 
 To do this, we'll use `paws` and `r2lambda::aws_connect` to establish an AWS CloudWatchLogs
 service locally, and fetch the recent logs to look for traces of our lambda function.
-
 
 In the first step, we connect to `cloudwatchlogs` and fetch the names of the log groups.
 Inspect the `logs` object below to find the name corresponding to the lambda function
@@ -173,19 +175,25 @@ data.frame(Current_time_lambda = current_time_messages)
 
 ```
 
+Evidently, the Lambda function printed the system time every one minute, as we 
+intened!
+
 ## Clean up
 
-We don't want to let a this trivial lambda fire every minute, it will still incur 
-some cost. So its wise to delete the event schedule rule and maybe even the lambda 
-function it self.
+We don't want to let a this lambda fire every minute, even if trivial it still 
+uses resources and incurs some cost. So its wise to delete the event schedule 
+rule and maybe even the lambda function it self.
 
-To remove the event rule, we first need to remove associated targets, and then remove
-the rule.
+To remove the event rule, we first need to remove associated targets. In the code
+below, we connect to EventBridge, lookup the names of all event rules, find the
+rule we wish to remove (in this case the most-recent one with index 1), and then,
+first remove its target followed by deleting the rule it self. (I'll probably
+add a function abstract this procedure in the `{r2lamdba}` package.)
 
 ```{r}
 # connect to the EventBridge service
 events_service <- r2lambda::aws_connect("eventbridge")
-# find the names of all rules we need
+# find the names of all rules 
 schedule_rules <- events_service$list_rules()[[1]] %>% sapply("[[", 1)
 
 # find the targets associated with the rule we want to remove
@@ -199,12 +207,13 @@ events_service$list_rules()[[1]] %>% sapply("[[", 1)
 
 ```
 
-Finally, to remove the Lambda:
+Finally, to remove the Lambda, we do something similar. Look up the names of all
+deployed functions on our account, and then delete the one(s) we'd like to delete.
 
 ```{r}
 lambda_service <- r2lambda::aws_connect("lambda")
 lambda_service$list_functions()$Functions %>% sapply("[[","FunctionName")
-lambda_service$delete_function(FunctionName = "parity1")
+lambda_service$delete_function(FunctionName = "current_time")
 ```
 
 ## Summary
@@ -218,10 +227,11 @@ In this post:
   - checked the AWS logs to confirm it executes at the correct times, and 
   - cleaned up our AWS environment. 
 
-I hope you found this tutorial useful, and that it will motivate you to try the `r2lambda` 
-package. I am looking for feedback on whether or not the workflows from `r2lambda` are
-working for other people -- not many have tried it so far. It would also be very interesting
-to hear suggestions on how to improve the interface, what features to add, what 
-additional documentation to include, and so on. Try it and share your experience!
-
+I hope you found this tutorial useful, and that it will motivate you to try the `{r2lambda}` 
+package. It is available on [GitHub](https://github.com/discindo/r2lambda) and can 
+be installed with `remotes::install_github`. I am looking for feedback on whether or 
+not the workflows from `r2lambda` are working for other people -- not many have 
+tried it so far. I am also interested in suggestions on how to 
+improve the interface, what features to add, what additional documentation to include, 
+and so on. Try it and share your experience!
 
