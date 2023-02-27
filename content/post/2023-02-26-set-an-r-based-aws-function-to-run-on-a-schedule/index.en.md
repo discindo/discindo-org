@@ -51,7 +51,7 @@ current_time <- function() {
 
 ## Build, test, and deploy
 
-Then, we follow the procedure described in [`Tidy Tuesday dataset Lambda` post](https://discindo.org/post/an-r-aws-lambda-function-to-download-tidytuesday-datasets/).
+Then, we follow the procedure described in [Tidy Tuesday dataset Lambda post](/post/an-r-aws-lambda-function-to-download-tidytuesday-datasets/).
 We write this to a file that we'll use to build the lambda `docker` image:
 
 ```{r}
