@@ -30,7 +30,7 @@ social:
   link: https://scholar.google.com/citations?user=2lKX40AAAAAJ&hl=en
 - icon: linkedin
   icon_pack: fab
-  link: https://www.linkedin.com/in/teofil-nakov-874a04202/
+  link: https://www.linkedin.com/in/teofil-nakov-ph-d-874a04202/
 superuser: true
 title: Teofil Nakov
 ---
