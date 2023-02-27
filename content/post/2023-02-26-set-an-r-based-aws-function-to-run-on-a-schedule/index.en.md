@@ -37,7 +37,7 @@ anything. If this example lambda is to run on a schedule, we don't want to worry
 about any input arguments. Also, we want this lambda function to simply have a 
 side-effect, like printing something to the logs, without returning any data or writing
 to a database. This will help us greatly with the setup, in that we'll be able deploy 
-and schedule the lambda with mininal involvement from other AWS services.
+and schedule the lambda with minimal involvement from other AWS services.
 
 With this in mind, we have the following function that simply prints the system time.
 Printing the current time makes sense because we can easily check that the lambda runs
