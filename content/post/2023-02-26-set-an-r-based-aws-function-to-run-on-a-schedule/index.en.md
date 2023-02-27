@@ -35,8 +35,8 @@ a schedule.
 We start with a simple function that does not require any input and does not return
 anything. If this example lambda is to run on a schedule, we don't want to worry
 about any input arguments. Also, we want this lambda function to simply have a 
-side-effect, like printing something to the logs, without returning any data or writing
-to a database. This will help us greatly with the setup, in that we'll be able deploy 
+side effect, like printing something to the logs, without returning any data or writing
+to a database. This will help us greatly with the setup, in that we'll be able to deploy 
 and schedule the lambda with minimal involvement from other AWS services.
 
 With this in mind, we have the following function that simply prints the system time.
@@ -122,7 +122,7 @@ we want EventBridge to invoke it. Two rate-setting expression formats are suppor
 `cron` and `rate`. For example, to schedule a lambda to run every Sunday at midnight, 
 we could use `execution_rate = "cron(0 0 * * Sun)"`. Alternatively, to schedule a lambda
 to run every 15 minutes, we might use `execution_rate = "rate(15 minutes)"`. The details are
-in this [article](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html)
+in this [article](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html).
 
 ```{r}
 r2lambda::schedule_lambda(lambda_function = "current_time", execution_rate = "rate(1 minute)")
@@ -175,9 +175,9 @@ data.frame(Current_time_lambda = current_time_messages)
 
 ## Clean up
 
-We don't want to let a this trivial lambda fire every minute, it will still incur 
-some cost. So its wise to delete the event schedule rule and maybe even the lambda 
-function it self.
+We don't want to let  this trivial lambda fire every minute, it will still incur 
+some cost. So it is wise to delete the event schedule rule and maybe even the lambda 
+function itself.
 
 To remove the event rule, we first need to remove associated targets, and then remove
 the rule.
@@ -219,7 +219,7 @@ In this post:
   - cleaned up our AWS environment. 
 
 I hope you found this tutorial useful, and that it will motivate you to try the `r2lambda` 
-package. I am looking for feedback on whether or not the workflows from `r2lambda` are
+package. I am looking for feedback on whether the workflows from `r2lambda` are
 working for other people -- not many have tried it so far. It would also be very interesting
 to hear suggestions on how to improve the interface, what features to add, what 
 additional documentation to include, and so on. Try it and share your experience!
