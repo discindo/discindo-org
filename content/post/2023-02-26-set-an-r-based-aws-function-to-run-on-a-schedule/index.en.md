@@ -128,7 +128,10 @@ to run every 15 minutes, we might use `execution_rate = "rate(15 minutes)"`. The
 in this [AWS article](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html)
 
 ```{r}
-r2lambda::schedule_lambda(lambda_function = "current_time", execution_rate = "rate(1 minute)")
+r2lambda::schedule_lambda(
+  lambda_function = "current_time", 
+  execution_rate = "rate(1 minute)"
+  )
 ```
 
 ## Checking the AWS logs
