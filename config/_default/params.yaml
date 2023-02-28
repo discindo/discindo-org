@@ -15,7 +15,7 @@ appearance:
 
 marketing:
   seo:
-    site_type: Person
+    site_type: Organization
     local_business_type: ''
     org_name: 'Discindo'
     description: 'Data are fun! Data science and data solutions with R and Shiny in the Cloud'
