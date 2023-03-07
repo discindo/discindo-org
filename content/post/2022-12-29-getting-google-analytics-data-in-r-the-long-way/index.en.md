@@ -24,7 +24,7 @@ projects: []
 One of the ways for getting Google Analytics data in R is using the excellent
 package [googleAnalyticsR](https://code.markedmondson.me/googleAnalyticsR/). 
 
-![GA flow 1](images/text1526.png)
+![GA flow 1](/post/2022-12-29-getting-google-analytics-data-in-r-the-long-way/images/text1526.png)
 
 ## GA4 and Big Query
 
@@ -33,14 +33,13 @@ But suppose you are curious about trying (the new) GA4 because the old one is [g
 This is a rather straightforward procedure as you get to click though a bunch of screens and at the end, the connection is established. Now, if you are new to the Google Cloud Platform, you will of course need to set up an account (and receive some credits to use for testing). If not, BigQuery will suggest you set up a billing account, and you should do this together with an alert. Again, this is straightforward as GCP guides the user through the process by showing notifications and suggestions. 
 All right. Next, the data from GA will now start to show up in your GCP project. But given that BigQuery stores table data in columnar format, the data will look like this:
 
-![BQ table](images/Screenshot_20221229_181036.png)
+![BQ table](/post/2022-12-29-getting-google-analytics-data-in-r-the-long-way/images/Screenshot_20221229_181036.png)
 
 At this point you can try working with the data on BigQuery (and learn some specifics about SQL dialect used there), or try to go the long way, which I did.
 
 ## dbt and the ga4 package
 
-![GA flow 2](images/text1526-2.png)
-
+![GA flow 2](/post/2022-12-29-getting-google-analytics-data-in-r-the-long-way/images/text1526-2.png)
 
 `dbt` (Data Build Tool) is a nice tool for running SQL analytics code on data warehouses (such as Big Query). You can use `dbt` on the command line, or create an account at [getdbt.com](https://www.getdbt.com) (which is free for one person). I suggest going through the [tutorial](https://docs.getdbt.com/docs/get-started/getting-started/overview) to familiarize with the workflow. 
 

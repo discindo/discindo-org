@@ -254,7 +254,7 @@ g = nx.from_pandas_edgelist(df_names_long, source = 'name', target = 'value')
 nx.draw_kamada_kawai(g, with_labels=True)
 ```
 
-![nx plot](images/plot.png)
+![nx plot](/post/2022-11-16-using-wikidata-to-draw-networks-of-politically-exposed-persons-1/images/plot.png)
 
 The graph doesn't look spectacular, but it show the possibilities of what can be achieved. 
 The few data points we had actually helped having a readable graph like this. Probably a 
