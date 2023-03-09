@@ -12,6 +12,7 @@ tags:
   - AWS EventBridge
   - AWS CloudWatch
   - cron
+  - Tidytuesday
 subtitle: ''
 summary: 'A step-by-step tutorial on how to deploy an R-based AWS Lambda function, how to set it to run on a recurring schedule, how to validate that the execution happens on schedule, and how to clean up. All from the R console.'
 authors: [teo]
