@@ -1,0 +1,320 @@
+---
+title: How to use custom icons in Rmd reports and Shiny applications
+author: teo
+date: '2023-03-19'
+slug: icons
+categories:
+  - R
+  - Shiny
+tags:
+  - icons
+  - htmltools
+  - HTML
+subtitle: ''
+summary: 'A workflow on how to create visually pleasing and effective static HTML visualizations of small-scale and heterogenous tabular data'
+authors: [teo]
+lastmod: '2023-03-19T10:56:26-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+Creating custom HTML tables with icons can be a great way to display data. In some
+cases, like when we have a few, heterogeneous data points, it is better than 
+creating charts or using feature-rich table widgets that come with a lot of dependencies
+(e.g., `{reactable}`, `{DT}`, and similar).
+
+In a recent project, I worked on a `{shiny}` application that displays a custom, static, 
+`HTML` table with some icons. For this project we needed some icons available 
+through the [`{icons}`](https://github.com/mitchelloharawild/icons) `R` package.
+Below is a quick tutorial about how to use `{htmltools}` and `{icons}` to 
+create tables with icons, and how to use the icons for Rmd HTML reports and `{shiny}`
+applications.
+
+## Dependencies
+
+```{r, eval = FALSE}
+install.packages("htmltools") # possibly unnecessary
+remotes::install_github("mitchelloharawild/icons")
+```
+
+## Data
+
+For the type of table we are creating here, we want a few data points of different
+types. For example, if we had to display personal and social media information in 
+a tabular format, we could have something like the list below. We have one person, 
+"Jaime" and we record information about their age, hobby, and twitter account:
+
+```{r}
+jaime <-
+  list(
+    Name = "Jaime",
+    Position = "Researcher",
+    Twitter = "Jaime123",
+    Hobby = "Football"
+  )
+jaime
+```
+
+For now, we'll work only with this one person list, but you can imagine having 
+many such items in a data frame and indexing this data frame to display data.
+
+## Icons
+
+For icons, we'll use the `{icons}` package. We'll work with `fontawesome` icons,
+but with the `{icons}` package, we have several other options too:
+
+```{r}
+library(icons)
+```
+
+Downloading icon sets is simple, we use `icons::download_*`, and the resulting 
+object is an `icon_set` class that we can pass an icon name to obtain the SVG 
+of the icon:
+
+```{r, eval = FALSE}
+icons::download_fontawesome()
+```
+
+```{r}
+icons::fontawesome("twitter")
+```
+
+## HTML table with icons
+
+First, we add icons to our person list. We convert each item to a list with
+two slots, `text` and `icon`. 
+
+```{r}
+jaime <-
+  list(
+    Name = list(text = "Jaime", icon = "user"),
+    Position = list(text = "Researcher", icon = "flask"),
+    Twitter = list(text = "Jaime123", icon = "twitter"),
+    Hobby = list(text = "Football", icon = "futbol")
+  )
+```
+
+Next, we'll use this list of item lists to generate the HTML for our table:
+
+- We define some CSS styles for the `th` and `td` tags
+- We use `lapply` to cycle over the elements of our person list `jaime` to
+generate rows (`tr` + `td`) tags for each item
+- We wrap the row_tags in a table tag (`tags$table`)
+
+```{r}
+style <- "text-align: left; padding: 10px 25px;"
+row_tags <- lapply(jaime,
+                   function(x) {
+                     htmltools::tags$tr(
+                       htmltools::tags$td(
+                         style = style,
+                         icons::icon_style(
+                           icons::fontawesome(name = x[["icon"]]),
+                           scale = 1.5,
+                           fill = "#5E81AC"
+                         )
+                       ),
+                       htmltools::tags$td(style = style, x[["text"]])
+                     )
+                   })
+
+container_style <- "
+    border: 0.5px solid #5E81AC; 
+    width: 50%; 
+    padding: 20px; 
+    display: flex; 
+    justify-content: center;"
+
+table_with_icons <- htmltools::div(style = container_style,
+               htmltools::tags$table(
+                 htmltools::tags$tr(
+                   htmltools::tags$th("Icon", style = style),
+                   htmltools::tags$th("Text", style = style)
+                 ),
+                 row_tags
+               ))
+table_with_icons
+```
+
+# Application in a parametrized report or a Shiny application
+
+To use our table with icons in a Rmd report or shiny application, we need to
+wrap it into a function:
+
+```{r}
+make_table_w_icons <- function(person_list) {
+  style <- "text-align: left; padding: 10px 25px;"
+  row_tags <- lapply(person_list,
+                     function(x) {
+                       htmltools::tags$tr(
+                         htmltools::tags$td(
+                           style = style,
+                           icons::icon_style(
+                             icons::fontawesome(name = x[["icon"]]),
+                             scale = 1.5,
+                             fill = "#5E81AC"
+                           )
+                         ),
+                         htmltools::tags$td(style = style, x[["text"]])
+                       )
+                     })
+  
+  container_style <- "
+    border: 0.5px solid #5E81AC;
+    width: 50%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;"
+  
+  table_with_icons <- htmltools::div(style = container_style,
+                                     htmltools::tags$table(
+                                       htmltools::tags$tr(
+                                         htmltools::tags$th("Icon", style = style),
+                                         htmltools::tags$th("Text", style = style)
+                                       ),
+                                       row_tags
+                                     ))
+  return(table_with_icons)
+}
+
+make_table_w_icons(jaime)
+```
+
+We can now create a simple `{shiny}` application that displays our person data with icons.
+
+## Shiny module
+
+A simple `{shiny}` module that uses server-side rendering to make the `HTML` table.
+The server defines a reactive value `person_rct` that we use to create the table. 
+The `set_person` function returned by the module server is used by the calling module
+to supply the person data (see the next section).
+
+```{r}
+tableWithIconsUI <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::tagList(
+    shiny::uiOutput(ns("tab"))
+  )
+}
+
+tableWithIconsServer <- function(id) {
+  shiny::moduleServer(
+    id,
+    function(input, output, session) {
+      
+      person_rct <- shiny::reactiveVal()
+      
+      output$tab <- shiny::renderUI({
+        make_table_w_icons(person_list = person_rct())
+      })
+      
+      return(list(
+        set_person = function(x) {
+          person_rct(x)
+        }
+        
+      ))
+    }
+  )
+}
+```
+
+## Shiny app
+
+For our application, we define another person (Jessica) and let the user choose
+a person with a `selectInput`. Then the server observes this input, indexes the
+`person_list` data object, and passes the person data list to the `tableWithIcons`
+module.
+
+```{r, eval = FALSE}
+library(shiny)
+
+jaime <-
+  list(
+    Name = list(text = "Jaime", icon = "user"),
+    Position = list(text = "Researcher", icon = "flask"),
+    Twitter = list(text = "Jaime123", icon = "twitter"),
+    Hobby = list(text = "Football", icon = "futbol")
+  )
+
+jessica <- list(
+  Name = list(text = "Jessica", icon = "user"),
+  Position = list(text = "Researcher", icon = "flask"),
+  Twitter = list(text = "IamJessica", icon = "twitter"),
+  Hobby = list(text = "Fishing", icon = "fish")
+)
+
+persons_data <- list(
+  Jaime = jaime,
+  Jessica = jessica
+)
+
+ui <- fluidPage(
+  selectInput(
+    inputId = "person",
+    label = "Person",
+    choices = c("Jaime", "Jessica")
+  ),
+  tableWithIconsUI(id = "tab1")
+)
+
+server <- function(input, output, session) {
+  tab1 <- tableWithIconsServer(id = "tab1")
+  
+  shiny::observeEvent(input$person, {
+    person_data <- person_list[[input$person]]
+    tab1$set_person(person_data)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+## Creating an icon set
+
+If you followed along and run the code, you'll probably be able to run the application
+without errors. However, if we were to deploy such an application, we would get an error
+because by default, our deployment would only install the `{icons}` package, but not
+also download the required icon set. We could include a `download_fontawesome`
+in our `server` or `global` file, but that would mean downloading the icons on every
+deployment or session start, neither of which is desirable.
+
+The solution is to create an icon set and store that as an asset to our application. 
+Then we would deploy this asset with our application, and instead of downloading the 
+full set of icons, we would only load the SVGs for the icons we use in our application.
+
+```{r, eval = FALSE}
+needed_icons <- c(lapply(persons_data$Jaime, "[[", "icon"),
+                  lapply(persons_data$Jessica, "[[", "icon")
+                  )
+needed_icons <- unique(needed_icons)
+# requires that folder `icons` exists!
+icons::icon_save(icons = needed_icons, path = "./icons")
+```
+
+If we had a `{golem}` application the `icons` folder might be placed in `inst`. 
+In a `rhino` application setup, we would put this icon set in `static`.
+
+Either way, we would need to load the icon set on application start with:
+
+```{r}
+app_icons <- icons::icon_set("path/to/icons")
+```
+
+# Summary
+
+In this post we went through a simple workflow for creating HTML tables with icons
+to display small-scale, heterogenous data that are not suitable for charting and 
+don't require interactive table widgets. We also saw how to use this type of visualization
+in a `{shiny}` application and how to include only a subset of required icons as
+resources for our web application.
+
+# Gist
+
+The full code for the working application is available as a gist below:
+
+<script src="https://gist.github.com/teofiln/f87c29ad872075270d7357eba1d31205.js"></script>

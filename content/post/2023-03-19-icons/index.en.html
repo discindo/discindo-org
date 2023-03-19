@@ -1,0 +1,378 @@
+---
+title: How to use custom icons in Rmd reports and Shiny applications
+author: teo
+date: '2023-03-19'
+slug: icons
+categories:
+  - R
+  - Shiny
+tags:
+  - icons
+  - htmltools
+  - HTML
+subtitle: ''
+summary: 'A workflow on how to create visually pleasing and effective static HTML visualizations of small-scale and heterogenous tabular data'
+authors: [teo]
+lastmod: '2023-03-19T10:56:26-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p>Creating custom HTML tables with icons can be a great way to display data. In some
+cases, like when we have a few, heterogeneous data points, it is better than
+creating charts or using feature-rich table widgets that come with a lot of dependencies
+(e.g., <code>{reactable}</code>, <code>{DT}</code>, and similar).</p>
+<p>In a recent project, I worked on a <code>{shiny}</code> application that displays a custom, static,
+<code>HTML</code> table with some icons. For this project we needed some icons available
+through the <a href="https://github.com/mitchelloharawild/icons"><code>{icons}</code></a> <code>R</code> package.
+Below is a quick tutorial about how to use <code>{htmltools}</code> and <code>{icons}</code> to
+create tables with icons, and how to use the icons for Rmd HTML reports and <code>{shiny}</code>
+applications.</p>
+<div id="dependencies" class="section level2">
+<h2>Dependencies</h2>
+<pre class="r"><code>install.packages(&quot;htmltools&quot;) # possibly unnecessary
+remotes::install_github(&quot;mitchelloharawild/icons&quot;)</code></pre>
+</div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<p>For the type of table we are creating here, we want a few data points of different
+types. For example, if we had to display personal and social media information in
+a tabular format, we could have something like the list below. We have one person,
+“Jaime” and we record information about their age, hobby, and twitter account:</p>
+<pre class="r"><code>jaime &lt;-
+  list(
+    Name = &quot;Jaime&quot;,
+    Position = &quot;Researcher&quot;,
+    Twitter = &quot;Jaime123&quot;,
+    Hobby = &quot;Football&quot;
+  )
+jaime</code></pre>
+<pre><code>## $Name
+## [1] &quot;Jaime&quot;
+## 
+## $Position
+## [1] &quot;Researcher&quot;
+## 
+## $Twitter
+## [1] &quot;Jaime123&quot;
+## 
+## $Hobby
+## [1] &quot;Football&quot;</code></pre>
+<p>For now, we’ll work only with this one person list, but you can imagine having
+many such items in a data frame and indexing this data frame to display data.</p>
+</div>
+<div id="icons" class="section level2">
+<h2>Icons</h2>
+<p>For icons, we’ll use the <code>{icons}</code> package. We’ll work with <code>fontawesome</code> icons,
+but with the <code>{icons}</code> package, we have several other options too:</p>
+<pre class="r"><code>library(icons)</code></pre>
+<pre><code>## ── Installed icons ─────────────────────────────────────────────── icon 0.2.0 ──</code></pre>
+<pre><code>## ✖ ionicons                  ✖ google_material      
+## ✖ academicons               ✖ feather_icons        
+## ✖ simple_icons              ✖ octicons             
+## ✖ bioicons                  ✔ fontawesome     6.3.0</code></pre>
+<p>Downloading icon sets is simple, we use <code>icons::download_*</code>, and the resulting
+object is an <code>icon_set</code> class that we can pass an icon name to obtain the SVG
+of the icon:</p>
+<pre class="r"><code>icons::download_fontawesome()</code></pre>
+<pre class="r"><code>icons::fontawesome(&quot;twitter&quot;)</code></pre>
+<svg viewBox="0 0 512 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path>
+</svg>
+</div>
+<div id="html-table-with-icons" class="section level2">
+<h2>HTML table with icons</h2>
+<p>First, we add icons to our person list. We convert each item to a list with
+two slots, <code>text</code> and <code>icon</code>.</p>
+<pre class="r"><code>jaime &lt;-
+  list(
+    Name = list(text = &quot;Jaime&quot;, icon = &quot;user&quot;),
+    Position = list(text = &quot;Researcher&quot;, icon = &quot;flask&quot;),
+    Twitter = list(text = &quot;Jaime123&quot;, icon = &quot;twitter&quot;),
+    Hobby = list(text = &quot;Football&quot;, icon = &quot;futbol&quot;)
+  )</code></pre>
+<p>Next, we’ll use this list of item lists to generate the HTML for our table:</p>
+<ul>
+<li>We define some CSS styles for the <code>th</code> and <code>td</code> tags</li>
+<li>We use <code>lapply</code> to cycle over the elements of our person list <code>jaime</code> to
+generate rows (<code>tr</code> + <code>td</code>) tags for each item</li>
+<li>We wrap the row_tags in a table tag (<code>tags$table</code>)</li>
+</ul>
+<pre class="r"><code>style &lt;- &quot;text-align: left; padding: 10px 25px;&quot;
+row_tags &lt;- lapply(jaime,
+                   function(x) {
+                     htmltools::tags$tr(
+                       htmltools::tags$td(
+                         style = style,
+                         icons::icon_style(
+                           icons::fontawesome(name = x[[&quot;icon&quot;]]),
+                           scale = 1.5,
+                           fill = &quot;#5E81AC&quot;
+                         )
+                       ),
+                       htmltools::tags$td(style = style, x[[&quot;text&quot;]])
+                     )
+                   })
+
+container_style &lt;- &quot;
+    border: 0.5px solid #5E81AC; 
+    width: 50%; 
+    padding: 20px; 
+    display: flex; 
+    justify-content: center;&quot;
+
+table_with_icons &lt;- htmltools::div(style = container_style,
+               htmltools::tags$table(
+                 htmltools::tags$tr(
+                   htmltools::tags$th(&quot;Icon&quot;, style = style),
+                   htmltools::tags$th(&quot;Text&quot;, style = style)
+                 ),
+                 row_tags
+               ))
+table_with_icons</code></pre>
+<div style="&#10;    border: 0.5px solid #5E81AC; &#10;    width: 50%; &#10;    padding: 20px; &#10;    display: flex; &#10;    justify-content: center;">
+<table>
+<tr>
+<th style="text-align: left; padding: 10px 25px;">Icon</th>
+<th style="text-align: left; padding: 10px 25px;">Text</th>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 448 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M313.6 304c-28.7 0-42.5 16-89.6 16-47.1 0-60.8-16-89.6-16C60.2 304 0 364.2 0 438.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-25.6c0-74.2-60.2-134.4-134.4-134.4zM400 464H48v-25.6c0-47.6 38.8-86.4 86.4-86.4 14.6 0 38.3 16 89.6 16 51.7 0 74.9-16 89.6-16 47.6 0 86.4 38.8 86.4 86.4V464zM224 288c79.5 0 144-64.5 144-144S303.5 0 224 0 80 64.5 80 144s64.5 144 144 144zm0-240c52.9 0 96 43.1 96 96s-43.1 96-96 96-96-43.1-96-96 43.1-96 96-96z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Jaime</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 448 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M437.2 403.5L320 215V64h8c13.3 0 24-10.7 24-24V24c0-13.3-10.7-24-24-24H120c-13.3 0-24 10.7-24 24v16c0 13.3 10.7 24 24 24h8v151L10.8 403.5C-18.5 450.6 15.3 512 70.9 512h306.2c55.7 0 89.4-61.5 60.1-108.5zM137.9 320l48.2-77.6c3.7-5.2 5.8-11.6 5.8-18.4V64h64v160c0 6.9 2.2 13.2 5.8 18.4l48.2 77.6h-172z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Researcher</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 512 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Jaime123</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 496 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M483.8 179.4C449.8 74.6 352.6 8 248.1 8c-25.4 0-51.2 3.9-76.7 12.2C41.2 62.5-30.1 202.4 12.2 332.6 46.2 437.4 143.4 504 247.9 504c25.4 0 51.2-3.9 76.7-12.2 130.2-42.3 201.5-182.2 159.2-312.4zm-74.5 193.7l-52.2 6.4-43.7-60.9 24.4-75.2 71.1-22.1 38.9 36.4c-.2 30.7-7.4 61.1-21.7 89.2-4.7 9.3-10.7 17.8-16.8 26.2zm0-235.4l-10.4 53.1-70.7 22-64.2-46.5V92.5l47.4-26.2c39.2 13 73.4 38 97.9 71.4zM184.9 66.4L232 92.5v73.8l-64.2 46.5-70.6-22-10.1-52.5c24.3-33.4 57.9-58.6 97.8-71.9zM139 379.5L85.9 373c-14.4-20.1-37.3-59.6-37.8-115.3l39-36.4 71.1 22.2 24.3 74.3-43.5 61.7zm48.2 67l-22.4-48.1 43.6-61.7H287l44.3 61.7-22.4 48.1c-6.2 1.8-57.6 20.4-121.7 0z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Football</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="application-in-a-parametrized-report-or-a-shiny-application" class="section level1">
+<h1>Application in a parametrized report or a Shiny application</h1>
+<p>To use our table with icons in a Rmd report or shiny application, we need to
+wrap it into a function:</p>
+<pre class="r"><code>make_table_w_icons &lt;- function(person_list) {
+  style &lt;- &quot;text-align: left; padding: 10px 25px;&quot;
+  row_tags &lt;- lapply(person_list,
+                     function(x) {
+                       htmltools::tags$tr(
+                         htmltools::tags$td(
+                           style = style,
+                           icons::icon_style(
+                             icons::fontawesome(name = x[[&quot;icon&quot;]]),
+                             scale = 1.5,
+                             fill = &quot;#5E81AC&quot;
+                           )
+                         ),
+                         htmltools::tags$td(style = style, x[[&quot;text&quot;]])
+                       )
+                     })
+  
+  container_style &lt;- &quot;
+    border: 0.5px solid #5E81AC;
+    width: 50%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;&quot;
+  
+  table_with_icons &lt;- htmltools::div(style = container_style,
+                                     htmltools::tags$table(
+                                       htmltools::tags$tr(
+                                         htmltools::tags$th(&quot;Icon&quot;, style = style),
+                                         htmltools::tags$th(&quot;Text&quot;, style = style)
+                                       ),
+                                       row_tags
+                                     ))
+  return(table_with_icons)
+}
+
+make_table_w_icons(jaime)</code></pre>
+<div style="&#10;    border: 0.5px solid #5E81AC;&#10;    width: 50%;&#10;    padding: 20px;&#10;    display: flex;&#10;    justify-content: center;">
+<table>
+<tr>
+<th style="text-align: left; padding: 10px 25px;">Icon</th>
+<th style="text-align: left; padding: 10px 25px;">Text</th>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 448 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M313.6 304c-28.7 0-42.5 16-89.6 16-47.1 0-60.8-16-89.6-16C60.2 304 0 364.2 0 438.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-25.6c0-74.2-60.2-134.4-134.4-134.4zM400 464H48v-25.6c0-47.6 38.8-86.4 86.4-86.4 14.6 0 38.3 16 89.6 16 51.7 0 74.9-16 89.6-16 47.6 0 86.4 38.8 86.4 86.4V464zM224 288c79.5 0 144-64.5 144-144S303.5 0 224 0 80 64.5 80 144s64.5 144 144 144zm0-240c52.9 0 96 43.1 96 96s-43.1 96-96 96-96-43.1-96-96 43.1-96 96-96z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Jaime</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 448 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M437.2 403.5L320 215V64h8c13.3 0 24-10.7 24-24V24c0-13.3-10.7-24-24-24H120c-13.3 0-24 10.7-24 24v16c0 13.3 10.7 24 24 24h8v151L10.8 403.5C-18.5 450.6 15.3 512 70.9 512h306.2c55.7 0 89.4-61.5 60.1-108.5zM137.9 320l48.2-77.6c3.7-5.2 5.8-11.6 5.8-18.4V64h64v160c0 6.9 2.2 13.2 5.8 18.4l48.2 77.6h-172z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Researcher</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 512 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Jaime123</td>
+</tr>
+<tr>
+<td style="text-align: left; padding: 10px 25px;">
+<svg viewBox="0 0 496 512" style="position:relative;display:inline-block;top:.1em;fill:#5E81AC;height:1.5em;" xmlns="http://www.w3.org/2000/svg">
+<path d="M483.8 179.4C449.8 74.6 352.6 8 248.1 8c-25.4 0-51.2 3.9-76.7 12.2C41.2 62.5-30.1 202.4 12.2 332.6 46.2 437.4 143.4 504 247.9 504c25.4 0 51.2-3.9 76.7-12.2 130.2-42.3 201.5-182.2 159.2-312.4zm-74.5 193.7l-52.2 6.4-43.7-60.9 24.4-75.2 71.1-22.1 38.9 36.4c-.2 30.7-7.4 61.1-21.7 89.2-4.7 9.3-10.7 17.8-16.8 26.2zm0-235.4l-10.4 53.1-70.7 22-64.2-46.5V92.5l47.4-26.2c39.2 13 73.4 38 97.9 71.4zM184.9 66.4L232 92.5v73.8l-64.2 46.5-70.6-22-10.1-52.5c24.3-33.4 57.9-58.6 97.8-71.9zM139 379.5L85.9 373c-14.4-20.1-37.3-59.6-37.8-115.3l39-36.4 71.1 22.2 24.3 74.3-43.5 61.7zm48.2 67l-22.4-48.1 43.6-61.7H287l44.3 61.7-22.4 48.1c-6.2 1.8-57.6 20.4-121.7 0z"></path>
+</svg>
+</td>
+<td style="text-align: left; padding: 10px 25px;">Football</td>
+</tr>
+</table>
+</div>
+<p>We can now create a simple <code>{shiny}</code> application that displays our person data with icons.</p>
+<div id="shiny-module" class="section level2">
+<h2>Shiny module</h2>
+<p>A simple <code>{shiny}</code> module that uses server-side rendering to make the <code>HTML</code> table.
+The server defines a reactive value <code>person_rct</code> that we use to create the table.
+The <code>set_person</code> function returned by the module server is used by the calling module
+to supply the person data (see the next section).</p>
+<pre class="r"><code>tableWithIconsUI &lt;- function(id) {
+  ns &lt;- shiny::NS(id)
+  shiny::tagList(
+    shiny::uiOutput(ns(&quot;tab&quot;))
+  )
+}
+
+tableWithIconsServer &lt;- function(id) {
+  shiny::moduleServer(
+    id,
+    function(input, output, session) {
+      
+      person_rct &lt;- shiny::reactiveVal()
+      
+      output$tab &lt;- shiny::renderUI({
+        make_table_w_icons(person_list = person_rct())
+      })
+      
+      return(list(
+        set_person = function(x) {
+          person_rct(x)
+        }
+        
+      ))
+    }
+  )
+}</code></pre>
+</div>
+<div id="shiny-app" class="section level2">
+<h2>Shiny app</h2>
+<p>For our application, we define another person (Jessica) and let the user choose
+a person with a <code>selectInput</code>. Then the server observes this input, indexes the
+<code>person_list</code> data object, and passes the person data list to the <code>tableWithIcons</code>
+module.</p>
+<pre class="r"><code>library(shiny)
+
+jaime &lt;-
+  list(
+    Name = list(text = &quot;Jaime&quot;, icon = &quot;user&quot;),
+    Position = list(text = &quot;Researcher&quot;, icon = &quot;flask&quot;),
+    Twitter = list(text = &quot;Jaime123&quot;, icon = &quot;twitter&quot;),
+    Hobby = list(text = &quot;Football&quot;, icon = &quot;futbol&quot;)
+  )
+
+jessica &lt;- list(
+  Name = list(text = &quot;Jessica&quot;, icon = &quot;user&quot;),
+  Position = list(text = &quot;Researcher&quot;, icon = &quot;flask&quot;),
+  Twitter = list(text = &quot;IamJessica&quot;, icon = &quot;twitter&quot;),
+  Hobby = list(text = &quot;Fishing&quot;, icon = &quot;fish&quot;)
+)
+
+persons_data &lt;- list(
+  Jaime = jaime,
+  Jessica = jessica
+)
+
+ui &lt;- fluidPage(
+  selectInput(
+    inputId = &quot;person&quot;,
+    label = &quot;Person&quot;,
+    choices = c(&quot;Jaime&quot;, &quot;Jessica&quot;)
+  ),
+  tableWithIconsUI(id = &quot;tab1&quot;)
+)
+
+server &lt;- function(input, output, session) {
+  tab1 &lt;- tableWithIconsServer(id = &quot;tab1&quot;)
+  
+  shiny::observeEvent(input$person, {
+    person_data &lt;- person_list[[input$person]]
+    tab1$set_person(person_data)
+  })
+}
+
+shinyApp(ui, server)</code></pre>
+</div>
+<div id="creating-an-icon-set" class="section level2">
+<h2>Creating an icon set</h2>
+<p>If you followed along and run the code, you’ll probably be able to run the application
+without errors. However, if we were to deploy such an application, we would get an error
+because by default, our deployment would only install the <code>{icons}</code> package, but not
+also download the required icon set. We could include a <code>download_fontawesome</code>
+in our <code>server</code> or <code>global</code> file, but that would mean downloading the icons on every
+deployment or session start, neither of which is desirable.</p>
+<p>The solution is to create an icon set and store that as an asset to our application.
+Then we would deploy this asset with our application, and instead of downloading the
+full set of icons, we would only load the SVGs for the icons we use in our application.</p>
+<pre class="r"><code>needed_icons &lt;- c(lapply(persons_data$Jaime, &quot;[[&quot;, &quot;icon&quot;),
+                  lapply(persons_data$Jessica, &quot;[[&quot;, &quot;icon&quot;)
+                  )
+needed_icons &lt;- unique(needed_icons)
+# requires that folder `icons` exists!
+icons::icon_save(icons = needed_icons, path = &quot;./icons&quot;)</code></pre>
+<p>If we had a <code>{golem}</code> application the <code>icons</code> folder might be placed in <code>inst</code>.
+In a <code>rhino</code> application setup, we would put this icon set in <code>static</code>.</p>
+<p>Either way, we would need to load the icon set on application start with:</p>
+<pre class="r"><code>app_icons &lt;- icons::icon_set(&quot;path/to/icons&quot;)</code></pre>
+</div>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<p>In this post we went through a simple workflow for creating HTML tables with icons
+to display small-scale, heterogenous data that are not suitable for charting and
+don’t require interactive table widgets. We also saw how to use this type of visualization
+in a <code>{shiny}</code> application and how to include only a subset of required icons as
+resources for our web application.</p>
+</div>
+<div id="gist" class="section level1">
+<h1>Gist</h1>
+<p>The full code for the working application is available as a gist below:</p>
+<script src="https://gist.github.com/teofiln/f87c29ad872075270d7357eba1d31205.js"></script>
+</div>
