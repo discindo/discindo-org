@@ -1,5 +1,5 @@
 ---
-title: How to use bootstrap 5 popovers in Shiny applications
+title: How to use Bootstrap 5 popovers in Shiny applications
 author: 'teo'
 date: '2023-04-01'
 slug: bs5-popovers
