@@ -1,0 +1,391 @@
+---
+title: 'How to use buttons in a Reactable widget for navigation in a Shiny application'
+author: teo
+date: '2023-04-04'
+slug: reactable-buttons
+categories:
+  - R
+  - Shiny
+tags:
+  - bslib
+  - reactable
+subtitle: ''
+summary: 'A few helpful design patterns for navigation in {shiny} applications using buttons in a {reactable} widget and '
+authors: [teo]
+lastmod: '2023-04-04T08:14:37-06:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="/rmarkdown-libs/core-js/shim.min.js"></script>
+<script src="/rmarkdown-libs/react/react.min.js"></script>
+<script src="/rmarkdown-libs/react/react-dom.min.js"></script>
+<script src="/rmarkdown-libs/reactwidget/react-tools.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/reactable-binding/reactable.js"></script>
+
+
+<p>How to render and use buttons in tables is a relatively common task faced by <code>{shiny}</code>
+developers. Commonly, buttons in tables are used for getting more details about a
+row of data, for opening modal panels for user input, for displaying charts, and
+of course, for navigation. There are many ways to achieve each of these tasks and
+many tools to do it with. We can create an HTML table containing buttons
+from scratch (e.g. <a href="https://discindo.org/post/icons/">here</a>), or we can use table
+widgets like the ones provided by the <code>{reactable}</code>, <code>{DT}</code> and many other packages.
+In this post, we’ll introduce a very straightforward way to implement buttons and
+use them for navigation (and alters) with the <code>{reactable}</code> package. Most of what
+you’ll see below is also documented in or derived from the <code>reactable</code> <a href="https://glin.github.io/reactable/articles/examples.html#cell-click-actions">docs</a>.</p>
+<div id="putting-buttons-in-a-reactable" class="section level1">
+<h1>Putting buttons in a <code>{reactable}</code></h1>
+<p>To render buttons inside a <a href="https://glin.github.io/reactable/"><code>reactable</code></a> widget
+we need to make an HTML button tag for each row of the table, and add this column
+of buttons as column in the data frame we wish to render. We also need to let <code>reactable</code>
+know that the columns containing our buttons should be interpreted as HTML.</p>
+<pre class="r"><code>colA &lt;- 1:3
+colB &lt;- c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)
+
+makeButton &lt;- function(label) {
+  as.character(htmltools::tags$div(htmltools::tags$button(paste(label, &quot;button&quot;))))
+}
+
+colC &lt;- as.character(lapply(c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;), makeButton))
+
+dataFrame &lt;- data.frame(A = colA, B = colB, C = colC)
+reactable::reactable(dataFrame,
+                     columns = list(C = reactable::colDef(sortable = FALSE,
+                                                             html = TRUE)))</code></pre>
+<div id="htmlwidget-1" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"A":[1,2,3],"B":["A","B","C"],"C":["<div>\n  <button>A button<\/button>\n<\/div>","<div>\n  <button>B button<\/button>\n<\/div>","<div>\n  <button>C button<\/button>\n<\/div>"]},"columns":[{"accessor":"A","name":"A","type":"numeric"},{"accessor":"B","name":"B","type":"character"},{"accessor":"C","name":"C","type":"character","sortable":false,"html":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"0a51d2e737504ad5fe689c4c740ec5e7"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="making-the-buttons-alive" class="section level1">
+<h1>Making the buttons alive</h1>
+<p>For the buttons to respond to our clicks, we need to add an <code>onclick</code> or <code>ondbclick</code>
+event to each button. To do this, we add the <code>onclick</code> argument to the <code>tags$button</code>
+tag in our <code>makeButton</code> function. Below, we create an event to each button that
+will show the id of the button clicked:</p>
+<pre class="r"><code>labels &lt;- LETTERS[1:3]
+
+buttonAlert &lt;- function(label) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(label, &quot;button&quot;),
+    onClick = sprintf(&quot;alert(&#39;Button value is: %s&#39;)&quot;, label)
+  )))
+}
+
+alertButtonsHTML &lt;- as.character(lapply(labels, buttonAlert))
+
+tableWithButtons &lt;- reactable::reactable(
+  data.frame(
+    Names = labels,
+    Alert = alertButtonsHTML
+  ),
+  columns = list(
+    Alert = reactable::colDef(sortable = FALSE,
+                              html = TRUE)
+  )
+)
+
+tableWithButtons</code></pre>
+<div id="htmlwidget-2" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Names":["A","B","C"],"Alert":["<div>\n  <button onClick=\"alert(&#39;Button value is: A&#39;)\">A button<\/button>\n<\/div>","<div>\n  <button onClick=\"alert(&#39;Button value is: B&#39;)\">B button<\/button>\n<\/div>","<div>\n  <button onClick=\"alert(&#39;Button value is: C&#39;)\">C button<\/button>\n<\/div>"]},"columns":[{"accessor":"Names","name":"Names","type":"character"},{"accessor":"Alert","name":"Alert","type":"character","sortable":false,"html":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"dataKey":"c7bfd21ad75eb7611bc0afe52f9f3d78"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script>
+<p>We also have the option to use <code>reactable</code>’s <code>onClick</code> argument,
+however this requires writing a JavaScript function to figure our which row was
+clicked and then trigger the appropriate action. In some complex scenarios,
+such an approach might be necessary, but for this use case, its simple to attach
+an <code>onclick</code> event to each button when we create the HTML in R.</p>
+</div>
+<div id="using-the-buttons-to-toggle-tabs" class="section level1">
+<h1>Using the buttons to toggle tabs</h1>
+<p>So far, we rendered a <code>{reactable}</code> with buttons from R, and added events to the buttons
+such that they trigger an alert in the browser showing the button id. This got us
+part of the way towards our goal to use the button clicks for navigation in <code>{shiny}</code>
+To be able to change tabs in a shiny application, we need to send the button id
+from the browser to the server. We do this with the <code>Shiny.setInputValue</code> JS function
+as described in the shiny docs on <a href="https://shiny.rstudio.com/articles/communicating-with-js.html">JS to R communication</a>.</p>
+<p>Next, we’ll define two columns of buttons, one that trigger an alert like before,
+and another that sets in input in <code>{shiny}</code>’s session that can be accessed from the
+server. To show this example we need a full <code>{shiny}</code> application with a tabset panel
+that we can toggle by clicking the <code>{reactable}</code> buttons. Toggling between tabs
+happens by the usual <code>updateTabsetPanel</code> in an observer listening to the input
+updated by the buttons.</p>
+<pre class="r"><code>tab_names &lt;- LETTERS[1:3]
+
+buttonSetInput &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Go to tab&quot;, nav_value),
+    onClick = sprintf(
+      &quot;Shiny.setInputValue(&#39;%s&#39;, &#39;%s&#39;, {priority: &#39;event&#39;})&quot;,
+      nav_id,
+      nav_value
+    )
+  )))
+}
+
+buttonWithAlert &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Alert&quot;, nav_value),
+    onClick = sprintf(&quot;alert(&#39;Nav id is: %s, and nav value is: %s&#39;)&quot;, nav_id, nav_value)
+  )))
+}
+
+alertButtonsHTML &lt;- as.character(lapply(tab_names, buttonWithAlert, nav_id = &quot;myNav&quot;))
+setInputButtonsHTML &lt;- as.character(lapply(tab_names, buttonSetInput, nav_id = &quot;myNav&quot;))
+
+tableWithButtons &lt;- reactable::reactable(
+  data.frame(
+    Names = LETTERS[1:3],
+    Alert = alertButtonsHTML,
+    SetInput = setInputButtonsHTML
+  ),
+  columns = list(
+    Alert = reactable::colDef(sortable = FALSE,html = TRUE),
+    SetInput = reactable::colDef(sortable = FALSE, html = TRUE)
+  )
+)
+
+ui &lt;- bslib::page_fluid(
+  theme = bslib::bs_theme(version = 5, bootswatch = &quot;flatly&quot;),
+  title = &quot;Reactable buttons navigation&quot;,
+  shiny::titlePanel(&quot;App navigation with buttons in reactable widget&quot;),
+  shiny::div(
+    class = &quot;row&quot;,
+    shiny::div(
+      class = &quot;col-4&quot;,
+      reactableOutput(&quot;myTab&quot;),
+      helpText(&quot;Input from reactable button is:&quot;),
+      verbatimTextOutput(&quot;inputFromTableButton&quot;),
+      bslib::navs_tab_card(
+        id = &quot;myTabs&quot;,
+        bslib::nav(title = &quot;Tab A&quot;, value = &quot;A&quot;, &quot;Contents of tab A&quot;),
+        bslib::nav(title = &quot;Tab B&quot;, value = &quot;B&quot;, &quot;Contents of tab B&quot;),
+        bslib::nav(title = &quot;Tab C&quot;, value = &quot;C&quot;, &quot;Contents of tab C&quot;)
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  output$myTab &lt;- renderReactable({
+    tableWithButtons
+  })
+
+  output$inputFromTableButton &lt;- renderPrint({
+    input$myNav
+  })
+
+  shiny::observeEvent(input$myNav, {
+    shiny::updateTabsetPanel(session = session,
+                             inputId = &quot;myTabs&quot;,
+                             selected = input$myNav)
+  })
+}
+
+shiny::shinyApp(ui, server)</code></pre>
+</div>
+<div id="but-this-is-not-really-navigation" class="section level1">
+<h1>But this is not really navigation</h1>
+<p>Yes, so far we’ve only toggled tabs on the same page. For this to be ‘navigation’,
+when we click the buttons in the table we should ‘jump’ from one to another tab. The
+mechanism to do something like this is essentially the same, except we should render
+the table <em>within</em> one of our tabs, and then have buttons that lead to other tabs. The
+example app below is a minor tweak of what we saw earlier to achieve exactly that.</p>
+<pre class="r"><code>tab_names &lt;- LETTERS[1:3]
+
+buttonSetInput &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Go to tab&quot;, nav_value),
+    onClick = sprintf(
+      &quot;Shiny.setInputValue(&#39;%s&#39;, &#39;%s&#39;, {priority: &#39;event&#39;})&quot;,
+      nav_id,
+      nav_value
+    )
+  )))
+}
+
+buttonWithAlert &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Alert&quot;, nav_value),
+    onClick = sprintf(&quot;alert(&#39;Nav id is: %s, and nav value is: %s&#39;)&quot;, nav_id, nav_value)
+  )))
+}
+
+alertButtonsHTML &lt;- as.character(lapply(tab_names, buttonWithAlert, nav_id = &quot;myNav&quot;))
+setInputButtonsHTML &lt;- as.character(lapply(tab_names, buttonSetInput, nav_id = &quot;myNav&quot;))
+
+tableWithButtons &lt;- reactable::reactable(
+  data.frame(
+    Names = LETTERS[1:3],
+    Alert = alertButtonsHTML,
+    SetInput = setInputButtonsHTML
+  ),
+  columns = list(
+    Alert = reactable::colDef(sortable = FALSE,html = TRUE),
+    SetInput = reactable::colDef(sortable = FALSE, html = TRUE)
+  )
+)
+
+ui &lt;- bslib::page_fluid(
+  theme = bslib::bs_theme(version = 5, bootswatch = &quot;flatly&quot;),
+  title = &quot;Reactable buttons navigation&quot;,
+  shiny::titlePanel(&quot;App navigation with buttons in reactable widget&quot;),
+  shiny::div(
+    class = &quot;row&quot;,
+    shiny::div(
+      class = &quot;col-4&quot;,
+      helpText(&quot;Input from reactable button is:&quot;),
+      verbatimTextOutput(&quot;inputFromTableButton&quot;),
+      bslib::navs_tab_card(
+        id = &quot;myTabs&quot;,
+        bslib::nav(title = &quot;Tab X&quot;, value = &quot;X&quot;, reactableOutput(&quot;myTab&quot;)),
+        bslib::nav(title = &quot;Tab A&quot;, value = &quot;A&quot;, &quot;Contents of tab A&quot;),
+        bslib::nav(title = &quot;Tab B&quot;, value = &quot;B&quot;, &quot;Contents of tab B&quot;),
+        bslib::nav(title = &quot;Tab C&quot;, value = &quot;C&quot;, &quot;Contents of tab C&quot;)
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  output$myTab &lt;- renderReactable({
+    tableWithButtons
+  })
+  
+  output$inputFromTableButton &lt;- renderPrint({
+    input$myNav
+  })
+  
+  shiny::observeEvent(input$myNav, {
+    shiny::updateTabsetPanel(session = session,
+                             inputId = &quot;myTabs&quot;,
+                             selected = input$myNav)
+  })
+}
+
+shiny::shinyApp(ui, server)</code></pre>
+</div>
+<div id="what-if-we-used-modules" class="section level1">
+<h1>What if we used modules?</h1>
+<p>In a realistic app, we would probably use <a href="https://shiny.rstudio.com/articles/modules.html">shiny modules</a>.
+We could easily construct a scenario where the <code>reactable</code> is rendered through a
+module, or where each tab is a separate module. The pattern we described above
+works in this case too, except, with modules, we have keep track of the namespaces.
+Modules are isolated, so an input value updated in module X will not be known to
+module Y. We have to implement some way of communication between modules.</p>
+<p>Below is one of several ways to send a message from one module to another. In this,
+case we pass a value from a ‘submodule’ to the calling module. This is a common
+case, for example, we have the main app server with top-level navigation, that is
+calling modules for ‘pages’ within the application. The key is to return the input
+updated by the submodule as a reactive that can be observed in the top-level module.</p>
+<pre class="r"><code>tab_names &lt;- LETTERS[1:3]
+
+buttonSetInput &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Go to tab&quot;, nav_value),
+    onClick = sprintf(
+      &quot;Shiny.setInputValue(&#39;%s&#39;, &#39;%s&#39;, {priority: &#39;event&#39;})&quot;,
+      nav_id,
+      nav_value
+    )
+  )))
+}
+
+buttonWithAlert &lt;- function(nav_id, nav_value) {
+  as.character(htmltools::tags$div(htmltools::tags$button(
+    paste(&quot;Alert&quot;, nav_value),
+    onClick = sprintf(&quot;alert(&#39;Nav id is: %s, and nav value is: %s&#39;)&quot;, nav_id, nav_value)
+  )))
+}
+
+rTabUI &lt;- function(id) {
+  ns &lt;- NS(id)
+  tagList(
+    reactableOutput(ns(&quot;myTab&quot;))
+  )
+}
+
+rTabServer &lt;- function(id) {
+  moduleServer(
+    id,
+    function(input, output, session) {
+      ns &lt;- session$ns
+      
+      alertButtonsHTML &lt;- as.character(lapply(tab_names, buttonWithAlert, nav_id = ns(&quot;myNav&quot;)))
+      setInputButtonsHTML &lt;- as.character(lapply(tab_names, buttonSetInput, nav_id = ns(&quot;myNav&quot;)))
+      
+      tableWithButtons &lt;- reactable::reactable(
+        data.frame(
+          Names = LETTERS[1:3],
+          Alert = alertButtonsHTML,
+          SetInput = setInputButtonsHTML
+        ),
+        columns = list(
+          Alert = reactable::colDef(sortable = FALSE,html = TRUE),
+          SetInput = reactable::colDef(sortable = FALSE, html = TRUE)
+        )
+      )
+      
+      output$myTab &lt;- renderReactable({
+        tableWithButtons
+      })
+      
+      return(list(
+        getButtonValue = shiny::reactive(input$myNav)
+      ))
+    }
+  )
+}
+
+
+ui &lt;- bslib::page_fluid(
+  theme = bslib::bs_theme(version = 5, bootswatch = &quot;flatly&quot;),
+  title = &quot;Reactable buttons navigation&quot;,
+  shiny::titlePanel(&quot;App navigation with buttons in reactable widget&quot;),
+  shiny::div(
+    class = &quot;row&quot;,
+    shiny::div(
+      class = &quot;col-4&quot;,
+      helpText(&quot;Input from reactable button is:&quot;),
+      verbatimTextOutput(&quot;inputFromTableButton&quot;),
+      bslib::navs_tab_card(
+        id = &quot;myTabs&quot;,
+        bslib::nav(title = &quot;Tab X&quot;, value = &quot;X&quot;, rTabUI(&quot;rtab&quot;) ),
+        bslib::nav(title = &quot;Tab A&quot;, value = &quot;A&quot;, &quot;Contents of tab A&quot;),
+        bslib::nav(title = &quot;Tab B&quot;, value = &quot;B&quot;, &quot;Contents of tab B&quot;),
+        bslib::nav(title = &quot;Tab C&quot;, value = &quot;C&quot;, &quot;Contents of tab C&quot;)
+      )
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  
+  rTabOut &lt;- rTabServer(&quot;rtab&quot;)
+  
+  output$inputFromTableButton &lt;- renderPrint({
+    rTabOut$getButtonValue()
+  })
+  
+  shiny::observeEvent(rTabOut$getButtonValue(), {
+    shiny::updateTabsetPanel(session = session,
+                             inputId = &quot;myTabs&quot;,
+                             selected = rTabOut$getButtonValue())
+  })
+}
+
+shiny::shinyApp(ui, server)</code></pre>
+<p>Other ways to implement communication between modules include passing (reactive)
+values through <code>session$userData</code> (e.g. <a href="https://appsilon.com/super-solutions-for-shiny-architecture-1-of-5-using-session-data/">here</a>)
+or updating values in an environment or <code>R6</code> class passed to each module as an
+argument (e.g. <a href="https://github.com/ColinFay/golemexamples/tree/master/golemR6">here</a>).</p>
+</div>
+<div id="summary" class="section level1">
+<h1>Summary</h1>
+<p>In this post we covered some examples of how one could implement navigation between
+‘pages’ in a <code>{shiny}</code> application using buttons in a <code>reactable</code>. We saw how to
+generate some buttons, how to update input values on button click, how to listen
+to changes from the buttons, and how to pass the user selections between modules.</p>
+</div>
