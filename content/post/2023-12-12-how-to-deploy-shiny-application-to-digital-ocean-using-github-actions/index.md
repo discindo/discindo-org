@@ -220,6 +220,10 @@ jobs:
             docker pull registry.digitalocean.com/myregistry/testgolem:latest
 ```
 
+## Gist
+
+For quick access to the main files visit this gist https://gist.github.com/teofiln/d52241797dfc055ed9b9bc96f0c0cb70
+
 ## Summary
 
 This article includes a step-by-step tutorial on setting up automatic deployment
