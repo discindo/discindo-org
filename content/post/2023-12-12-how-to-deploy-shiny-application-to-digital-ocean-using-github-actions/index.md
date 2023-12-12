@@ -222,7 +222,9 @@ jobs:
 
 ## Gist
 
-For quick access to the main files visit this gist https://gist.github.com/teofiln/d52241797dfc055ed9b9bc96f0c0cb70
+For quick access to the main files visit this gist
+
+<script src="https://gist.github.com/teofiln/d52241797dfc055ed9b9bc96f0c0cb70.js"></script>
 
 ## Summary
 
