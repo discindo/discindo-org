@@ -21,7 +21,7 @@ image:
 projects: []
 ---
 
-Today, together with a friend who is looking get into data analytics, I started 
+Today, together with a friend who is looking to get into data analytics, I started 
 doing the [100 days of Python](https://replit.com/learn/100-days-of-python) 
 challenge at Replit.
 
@@ -38,7 +38,7 @@ email = input("Your email: ")
 ```
 
 When running this with `Ctrl+Enter`, `Python` prompts for name, and waits. Once name is 
-entered, prompts for for email. 
+entered, prompts for email. 
 
 In R the equivalent would be:
 
@@ -65,9 +65,9 @@ the next line to be entered as input to the first `readline()`.
 
 However, clicking on the `Source` button to run the script, produces the behavior 
 experienced with `Python`: `R` waits for the user to respond to the prompt, instead 
-of entering the next line as input to `readline()`.
+of entering the next line as input to the first `readline()`.
 
-When running When running this with `Ctrl+Enter` in VSCode with `radian` as the 
+When running this with `Ctrl+Enter` in VSCode with `radian` as the 
 `R` console, `R` again waits for the user to respond to the prompt.
 
 On to challenge 3. :)
