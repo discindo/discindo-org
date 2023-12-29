@@ -33,7 +33,7 @@ in marine fish and is a back-end for a video game that lets users modify paramet
 like treatments, to better understand parasite loads and fish biomass. This needed
 to be tested before making it public.
 
-Getting to the point where even one can thing about AWS was no simple task
+Getting to the point where even one can think about AWS was no simple task,
 though. One thing that almost always stands out when seeing `R` code in the
 wild is that a lot of things still work in a non-reproducible way. Often with
 `source`-ing scripts with hard-coded paths, and setting working directory
@@ -101,7 +101,7 @@ Then `copilot` sets up the infrastructure and deploys the test environment.
 
 Success! Or so I thought. The first deployment of the API failed.
 
-There were couple of tweaks that I needed to do. 
+There were a couple of tweaks that I needed to do. 
 
 One, I needed to set up a custom
 health check path. The "Hello World" endpoint of the API was at  '/hello', so I 
