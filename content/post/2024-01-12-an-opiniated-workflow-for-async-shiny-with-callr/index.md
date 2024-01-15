@@ -3,8 +3,8 @@ title: A simple workflow for async {shiny} with {callr}
 author: "teo"
 date: "2024-01-12"
 slug: an-opiniated-workflow-for-async-shiny-with-callr
-categories: [R, shiny, callr, Async Programming]
-tags: []
+categories: [R, shiny, async programming, callr]
+tags: [shiny module]
 subtitle: ""
 summary: "An approach to simplify and standardize async calls in `{shiny}` apps using `{callr}`"
 authors: [teo]
@@ -258,4 +258,5 @@ histogram work throughout.
 
 ## Summary
 
-In this post I went over an approach to organize `callr` background async jobs using a module, in order to make the async code faster to write, less error prone and overall cleaner.
+In this post I went over an approach to organize `callr` background async jobs using
+a module, in order to make the async code faster to write, less error prone and overall cleaner.
