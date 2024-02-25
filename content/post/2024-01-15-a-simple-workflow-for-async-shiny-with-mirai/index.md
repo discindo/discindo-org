@@ -1,5 +1,5 @@
 ---
-title: A simple workflow for async `{shiny}` with `{mirai}`
+title: A simple workflow for async {shiny} with {mirai}
 author: "teo"
 date: "2024-01-15"
 slug: a-simple-workflow-for-async-shiny-with-mirai
