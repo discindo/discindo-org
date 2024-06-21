@@ -10,7 +10,7 @@ headless: true
 weight: 60
 
 title: Data are fun! 
-subtitle: Data science and data solutions with R and Shiny in the Cloud
+subtitle: Data science and data engineering solutions with R and Shiny in the Cloud
 
 content:
   # Filter on criteria

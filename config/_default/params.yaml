@@ -18,7 +18,7 @@ marketing:
     site_type: Organization
     local_business_type: ''
     org_name: 'Discindo'
-    description: 'Data are fun! Data science and data solutions with R and Shiny in the Cloud'
+    description: 'Data are fun! Data science and data engineering solutions with R and Shiny in the Cloud'
     twitter: 'podatoci'
   analytics:
     #google_analytics: 'G-DF61YLH749'
