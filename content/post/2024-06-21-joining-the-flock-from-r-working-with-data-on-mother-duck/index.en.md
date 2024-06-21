@@ -54,13 +54,13 @@ data <- dbGetQuery(con, "SELECT * FROM iris")
 
 ```
 
-Of course there is the possibility of doing things with [duckplyr](https://duckdblabs.github.io/duckplyr/), but we are not going to go into that. 
+Of course, there is the possibility of doing things with [duckplyr](https://duckdblabs.github.io/duckplyr/), but we are not going to go into that. 
 
 ### Connecting to MotherDuck
 
 MotherDuck documentation has details about [connecting](https://motherduck.com/docs/getting-started/connect-query-from-python/installation-authentication) to MotherDuck using `python`, but not for connecting using `R`.
 
-After asking few question on the discord, I learned that the process should be similar. 
+After asking a few questions on the discord, I learned that the process should be similar. 
 
 Let's see how that looks.
 
@@ -154,10 +154,10 @@ DBI::dbGetQuery(
 Note that we have to specify the database name: `sample_data`, and the 
 schema: `who` to query the data on MotherDuck.
 
-The results can be assigned to a object in R, which I did. And since it is 
-always fun to make a plot here is how it looks for the two cities where I 
+The results can be assigned to an object in R, which I did. And since it is 
+always fun to make a plot, here is how it looks for the two cities where I 
 spend most of my time.
 
 ![Particle concentration plot](images/particles.png)
 
-And, that's a wrap. I mean a quack. :)
+And, that's a wrap. I mean, a quack. :)
