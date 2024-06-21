@@ -151,8 +151,8 @@ DBI::dbGetQuery(
 )
 ```
 
-Note that we have to specify the database name `sample_data` and the 
-schema - `who` to query the data on MotherDuck.
+Note that we have to specify the database name: `sample_data`, and the 
+schema: `who` to query the data on MotherDuck.
 
 The results can be assigned to a object in R, which I did. And since it is 
 always fun to make a plot here is how it looks for the two cities where I 
