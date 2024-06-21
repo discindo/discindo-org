@@ -107,7 +107,7 @@ figure out that it should load the `motherduck` extension, as is probably the ca
 in `python`.
 
 The approach in R is then similar to what is suggested in the section
-[Connecting to MotherDuck after opening a local DuckDB database(https://motherduck.com/docs/getting-started/connect-query-from-python/installation-authentication#connecting-to-motherduck-after-opening-a-local-duckdb-database):
+[Connecting to MotherDuck after opening a local DuckDB database](https://motherduck.com/docs/getting-started/connect-query-from-python/installation-authentication#connecting-to-motherduck-after-opening-a-local-duckdb-database):
 
 ```
 # Create a local database
