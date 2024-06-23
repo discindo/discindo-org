@@ -7,7 +7,7 @@ categories:
   - R
 tags: - packages
 subtitle: ''
-summary: 'The missing conventions in packages' description'
+summary: 'The missing conventions in the descriptions of packages'
 authors: [novica]
 lastmod: '2024-06-23T10:29:32+02:00'
 featured: no
