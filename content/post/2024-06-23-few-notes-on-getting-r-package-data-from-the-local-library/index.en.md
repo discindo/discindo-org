@@ -176,3 +176,15 @@ package_data <- lapply(
   lapply(setNames, c("Package", "Version", "Built", "Repository")) |> 
   dplyr::bind_rows()
 ```
+
+### Update 2024-06-23, 16:44 CEST
+
+Many thanks to [Chuck Powell](https://github.com/ibecav) for sending a
+message that all of this can be achieved with one simple command from the 
+package `pak`:
+
+```
+pak::pkg_list()
+```
+
+Awesome. :)
