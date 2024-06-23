@@ -5,7 +5,8 @@ date: '2024-06-23'
 slug: few-notes-on-getting-r-package-data-from-the-local-library
 categories:
   - R
-tags: - packages
+tags: 
+  - packages
 subtitle: ''
 summary: 'The missing conventions in the descriptions of packages'
 authors: [novica]
