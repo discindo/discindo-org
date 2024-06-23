@@ -18,7 +18,6 @@ image:
 projects: []
 ---
 
-
 I am involved in a [Posit Team](https://posit.co/products/enterprise/team/) 
 deployment, and one of the things that we are looking into is default R packages
 that should be made available to all users. We are looking to do this because we
@@ -27,7 +26,7 @@ libraries in order to save on space and to make sure everyone is on the same
 version, at least for the packages that are considered to be a preferred 
 default option for working with data in R.
 
-In order to do this we wanted to collect all of the packages that are currently
+In order to do this we wanted to collect all the packages that are currently
 used, their versions, source repository and similar information.  That way we 
 can see if anything else should be installed for all users,  in addition to the 
 best guess that we should have `tidyverse`, `tidymodels`, and `shiny`.
@@ -67,7 +66,7 @@ $Version
 ```
 
 At this point, I am thinking that all these description files have the same
-structure. Therefore if I want to get all packages' version i need to `lapply` to
+structure. Therefore, if I want to get all packages' version I need to `lapply` to
 get the fourth element and that's that. It turns out this is not entirely true.
 Not all packages have the same structure of the description. See `tydir`:
 
