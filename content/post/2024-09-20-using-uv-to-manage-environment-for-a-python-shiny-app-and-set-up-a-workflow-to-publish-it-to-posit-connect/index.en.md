@@ -28,19 +28,20 @@ projects: []
 A couple of weeks ago I got a notification from LinkedIn. Unlike the usual notifications, 
 this was not from an anonymous recruiter viewing my profile. It was a post by 
 [Russ Hyde](https://www.jumpingrivers.com/authors/russ-hyde/) who was looking for examples on
-how to organize the code in a Python Shiny app. He bumped into my post on the 
-[topic](https://github.com/novica/pyshinywikidata) where where I describe a simple approach 
+how to organize the code in a Python Shiny app. He bumped into my repository on the 
+[topic](https://github.com/novica/pyshinywikidata). For the curious, there is also an accompanying
+[blog post](post/packaging-a-python-shiny-app/) where where I describe a simple approach 
 to package a Python Shiny app.
 
 It was a great reminder that I should look into my previous work, as I was 
-anyhow trying to figure out way to deploy Python Shiny apps to Posit Connect. 
+anyhow trying to figure out different ways to deploy Python Shiny apps to Posit Connect. 
 
 At the same time the relatively new Python packager and project manager called 
 [uv](https://docs.astral.sh/uv/) caught my attention with many internet resources
-about its features popping up at, more or less, at the same time (for example: 
+about its features popping up, more or less, at the same time (for example: 
 [demo project by Damjan](https://github.com/gdamjan/uv-getting-started), 
 [Unified Python packaging with uv](https://talkpython.fm/episodes/show/476/unified-python-packaging-with-uv)). 
-So I thought why test how Shiny for Python would
+So I thought why not test how Shiny for Python would
 work with `uv` and whether this package manager can be used to in a setup
 for deployments to Posit Connect.
 
@@ -116,16 +117,15 @@ Then I just verified that the packages load by running python and importing.
 
 ## Step 4: Create the `requirements.txt` and `manifest.json` needed for deploying to Posit Connect
 
-
 As you might know if you are working with Shiny app in Python, the 
 `rsconnect-python` package is needed to generate the `manifest.json` file. The
 manifest is used by Posit Connect when publishing from a git repository
 (which is something that I want to do).
 
-Usually the way to do it is to run:
+Usually the way to do it is to run in the app folder:
 
 ```
-rsconnect write-manifest shiny app.py
+$ rsconnect write-manifest shiny .
 ```
 
 But since the idea is to use `uv` I had to try, and fail multiple times, with it.
@@ -137,20 +137,21 @@ possibility, of course, but it seems it is an unnecessary complication.
 The default way to get the requirements with `uv` is:
 
 ```
-uv export -o requirements.txt
+$ uv export -o requirements.txt
 ```
 
 This, however, generates the dependencies with hashes, which then is a problem 
-with the package environment not having a hass. To quote the error log:
+with the package environment not having a hash. To quote the error log:
 
-```
-The editable requirement pyshinywikidata cannot be installed when requiring hashes, because there is no single file to hash.
-```
+
+   | The editable requirement pyshinywikidata cannot be installed 
+   | when requiring hashes, because there is no single file to hash.
+
 
 Omitting the package with:
 
 ```
-uv export --no-emit-project -o requirements.txt
+$ uv export --no-emit-project -o requirements.txt
 ```
 
 Fails because now the package containing the app is no longer in 
