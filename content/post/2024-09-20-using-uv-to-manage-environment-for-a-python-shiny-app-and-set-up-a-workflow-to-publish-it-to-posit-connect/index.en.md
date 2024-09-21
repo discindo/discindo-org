@@ -30,7 +30,7 @@ this was not from an anonymous recruiter viewing my profile. It was a post by
 [Russ Hyde](https://www.jumpingrivers.com/authors/russ-hyde/) who was looking for examples on
 how to organize the code in a Python Shiny app. He bumped into my repository on the 
 [topic](https://github.com/novica/pyshinywikidata). For the curious, there is also an accompanying
-[blog post](post/packaging-a-python-shiny-app/) where where I describe a simple approach 
+[blog post](/post/packaging-a-python-shiny-app/) where where I describe a simple approach 
 to package a Python Shiny app.
 
 It was a great reminder that I should look into my previous work, as I was 
@@ -41,6 +41,7 @@ At the same time the relatively new Python packager and project manager called
 about its features popping up, more or less, at the same time (for example: 
 [demo project by Damjan](https://github.com/gdamjan/uv-getting-started), 
 [Unified Python packaging with uv](https://talkpython.fm/episodes/show/476/unified-python-packaging-with-uv)). 
+
 So I thought why not test how Shiny for Python would
 work with `uv` and whether this package manager can be used to in a setup
 for deployments to Posit Connect.
