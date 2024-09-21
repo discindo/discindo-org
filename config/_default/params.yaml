@@ -44,7 +44,7 @@ header:
 
 footer:
    copyright:
-     notice: '© {year} Discindo. This work is licensed under {license}. The content is aggregated on [r-bloggers.com](https://r-bloggers.com).'
+     notice: '© {year} Discindo. This work is licensed under {license}. The content is aggregated on [r-bloggers](https://r-bloggers.com). Buy us a coffee at [ko-fi](https://ko-fi.com/discindo), or support us on [Patreon](https://www.patreon.com/discindo)'
      license:
        enable: true
        allow_derivatives: true
