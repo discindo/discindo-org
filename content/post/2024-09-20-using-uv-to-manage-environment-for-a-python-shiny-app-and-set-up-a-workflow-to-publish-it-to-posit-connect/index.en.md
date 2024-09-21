@@ -115,10 +115,10 @@ As you may know if you are doing Shiny apps, the `rsconnect-python` package is n
 generate the `manifest.json` file which Posit Connect uses when publishing from a git repository
 (which is something that I want to do). 
 
-Usually the way to do it is to run:
+Usually the way to do it is to run `rsconnect` in the folder where the app is:
 
 ```
-rsconnect write-manifest shiny app.py
+$ rsconnect write-manifest shiny .
 ```
 
 But since the idea is to use `uv` I had to try, and fail multiple times, with it.
