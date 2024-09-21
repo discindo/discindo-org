@@ -102,7 +102,7 @@ This is the environment in which further development of the app could happen.
 At this point I checked the git status and I have one new untracked file `.python-version`, 
 which, as expected, has the Python version written inside.
 
-# Step 3: Install Shiny and other dependencies for the app
+## Step 3: Install Shiny and other dependencies for the app
 
 The example application depends on three packages: `shiny`, `SPARQLWrapper`, 
 and `pandas`, and I added those. Adding this to the `uv` environment can be 
