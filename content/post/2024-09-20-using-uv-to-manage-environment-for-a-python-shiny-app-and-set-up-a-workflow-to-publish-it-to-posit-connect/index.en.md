@@ -1,5 +1,5 @@
 ---
-title: Using uv to manage environment for a Python Shiny app and set up a GitHub action 
+title: Using uv to manage environment for a Python Shiny app and setting up a GitHub action 
   to publish it to Posit Connect
 author: novica
 date: '2024-09-21'
