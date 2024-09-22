@@ -145,8 +145,7 @@ This, however, generates the dependencies with hashes, which then is a problem
 with the package environment not having a hash. To quote the error log:
 
 
-   | The editable requirement pyshinywikidata cannot be installed 
-   | when requiring hashes, because there is no single file to hash.
+> The editable requirement pyshinywikidata cannot be installed when requiring hashes, because there is no single file to hash.
 
 
 Omitting the package with:
