@@ -25,12 +25,12 @@ projects: []
 
 ## It all starts with a notification
 
-A couple of weeks ago I got a notification from LinkedIn. Unlike the usual notifications, 
+A couple of weeks ago, I got a notification from LinkedIn. Unlike the usual notifications, 
 this was not from an anonymous recruiter viewing my profile. It was a post by 
 [Russ Hyde](https://www.jumpingrivers.com/authors/russ-hyde/) who was looking for examples on
 how to organize the code in a Python Shiny app. He bumped into my repository on the 
 [topic](https://github.com/novica/pyshinywikidata). For the curious, there is also an accompanying
-[blog post](/post/packaging-a-python-shiny-app/) where where I describe a simple approach 
+[blog post](/post/packaging-a-python-shiny-app/) where I describe a simple approach 
 to package a Python Shiny app.
 
 It was a great reminder that I should look into my previous work, as I was 
@@ -74,9 +74,9 @@ part of the `uv` directory.
 
 ## Step 2: Project-specific python version
 
-Next I needed a specific version of Python (my Posit Connect instance runs on 3.11.5).
+Next, I needed a specific version of Python (my Posit Connect instance runs on 3.11.5).
 
-First I updated my `pyproject.toml` to have the required Python version.
+First, I updated my `pyproject.toml` to have the required Python version.
 
 Then, adding a specific Python version to the project is also simple. After navigating to
 the project folder, I just ran:
@@ -131,7 +131,7 @@ $ rsconnect write-manifest shiny .
 
 But since the idea is to use `uv` I had to try, and fail multiple times, with it.
 
-First the problem with `rsconnect` is that it generates the files in the 
+First, the problem with `rsconnect` is that it generates the files in the 
 app directory, instead of the top level python project. Moving the files is a 
 possibility, of course, but it seems it is an unnecessary complication.
 
@@ -158,12 +158,12 @@ $ uv export --no-emit-project -o requirements.txt
 Fails because now the package containing the app is no longer in 
 `requirements.txt`, and Posit Connect can't find the module to run.
 
-Finally, after few more trial and errors I found the solution in the 
+Finally, after a few more trial and errors, I found the solution in the 
 `--no-hashes` option of the `uv export` command.
 
 Then, I needed to use `uv` to generate the manifest too. And `uv` has this nice 
 feature where a tool can be invoked without installing it, which is handy for 
-the `rsconnect-python` package. Here the `--entrypoint` needs to be set up so 
+the `rsconnect-python` package. Here, the `--entrypoint` needs to be set up so 
 that Posit Connect knows that the app is in the installed package.
 
 The full `uv` set of commands is:
@@ -192,7 +192,7 @@ be strange. So why not automate it?
 Posit Connect can only listen to branches, so the idea is to have a `deploy` 
 branch which Connect publishes, but which is managed by GitHub actions.
 
-With a little help from existing `yaml` files I stitched together a 
+With a little help from existing `yaml` files, I stitched together a 
 [workflow script](https://github.com/novica/pyshinywikidata/blob/main/.github/workflows/update-requirements.yaml) 
 that creates the needed files on the `deploy` branch and then successfully deployed it 
 to Posit Connect.
@@ -203,10 +203,10 @@ Additionally, I needed to allow workflow permission in my repository settings
 to be able to read and write. That's under 
 `Settings -> Select Actions → General -> Workflow -> Read` and write permissions.
 
-All of the code and my trials and errors are under the repo at: 
+All the code and my trials and errors are under the repo at: 
 [https://github.com/novica/pyshinywikidata/](https://github.com/novica/pyshinywikidata/).
 
 ## Summary 
-In this article I reviewed the procedure of setting up a `uv` project manager
+In this article, I reviewed the procedure of setting up a `uv` project manager
 environment for a Python Shiny application and integrating the project with 
 GitHub Actions to enable automated deployment to Posit Connect. 
