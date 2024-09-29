@@ -6,7 +6,7 @@ slug: 'noting-the-differences-in-deploying-r-vs-python-apps-on-posit-connect'
 categories: [R, Python, Automation]
 tags: [shiny, posit connect, github actions]
 subtitle: ''
-summary: ''
+summary: 'Clarifying confusion regarding using GitHub Actions to deploy R and Python Shiny apps'
 authors: [novica]
 lastmod: '2024-09-29T12:01:18+02:00'
 featured: no
