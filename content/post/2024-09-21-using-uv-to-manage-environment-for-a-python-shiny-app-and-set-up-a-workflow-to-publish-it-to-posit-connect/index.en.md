@@ -6,6 +6,7 @@ date: '2024-09-21'
 slug: using-uv-to-manage-environment-for-a-python-shiny-app-and-set-up-a-workflow-to-publish-it-to-posit-connect
 categories:
   - python
+  - automation
 tags:
   - shiny
   - uv
