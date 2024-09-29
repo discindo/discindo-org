@@ -1,9 +1,9 @@
 ---
-title: Using uv to manage environment for a Python Shiny app and setting up a GitHub action 
+title: Using uv to manage the environment for a Python Shiny app and setting up a GitHub action 
   to publish it to Posit Connect
 author: novica
 date: '2024-09-21'
-slug: using-uv-to-manage-environment-for-a-python-shiny-app-and-set-up-a-workflow-to-publish-it-to-posit-connect
+slug: using-uv-to-manage-the-environment-for-a-python-shiny-app-and-set-up-a-workflow-to-publish-it-to-posit-connect
 categories:
   - python
   - automation
