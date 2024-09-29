@@ -18,7 +18,7 @@ projects: []
 ---
 
 I ended my previous post [Using uv to manage environment for a Python Shiny app and setting up a GitHub action 
-  to publish it to Posit Connect](/post/using-uv-to-manage-environment-for-a-python-shiny-app-and-set-up-a-workflow-to-publish-it-to-posit-connect/) with:
+  to publish it to Posit Connect](/post/using-uv-to-manage-the-environment-for-a-python-shiny-app-and-set-up-a-workflow-to-publish-it-to-posit-connect/) with:
   
   > Posit Connect can only listen to branches, so the idea is to have a deploy branch which Connect publishes, but which is managed by GitHub actions.
 
