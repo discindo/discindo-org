@@ -1,15 +1,10 @@
 ---
-title: {r2lambda} update to support multi-file projects and {renv} projects
+title: r2lambda update to support multi-file projects and renv projects
 author: 'Teo'
 date: '2024-10-17'
 slug: r2lambda-renv
-categories:
-  - AWS
-  - R
-tags:
-  - r2lambda
-  - AWS Lambda
-  - renv
+categories: [AWS, R]
+tags: [r2lambda, AWS Lambda, renv]
 subtitle: ''
 summary: 'A demo of two newly added features in the `{r2lambda}` R package. How to deploy R projects with multiple files, and how to use the `{renv}` lockfile to manage dependencies in the AWS Lambda docker image'
 authors: [teo]
