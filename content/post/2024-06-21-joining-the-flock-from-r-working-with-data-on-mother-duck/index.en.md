@@ -26,6 +26,8 @@ opportunity to see how both can be used from `R`. I work for an organization whe
 `R` is the default language for doing most of the analytics, so being able to do
 this is more than just simple curiosity. 
 
+> Update: 2024.12.07: The steps described below will not work on Windows. The `motherduck` extension is not supported (yet). People have also experienced issues with running it on Mac, but I cannot test that, so if someone makes it work, let me know.
+
 ### My setup
 
 I am running `R` version 4.4.1 on Linux, with `duckdb` [version](https://r.duckdb.org/) 1.0.0.
